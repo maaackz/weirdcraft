@@ -1,0 +1,41 @@
+{
+  "pharaohs_curse": {
+    "sounds": [
+      "weirdcraft:pharaohs_curse"
+    ]
+  },
+  "aaaaa": {
+    "sounds": [
+      "weirdcraft:aaaaa"
+    ]
+  },
+  "sand_ocean": {
+    "sounds": [
+      {
+        "name": "weirdcraft:sand_ocean",
+        "stream": true
+      }
+
+    ]
+  },
+  "ihate": {
+    "sounds": [
+        "weirdcraft:ihate"
+    ]
+  },
+  "iluv": {
+    "sounds": [
+      "weirdcraft:iluv"
+    ]
+  },
+  "ballsacksinmymouth": {
+    "sounds": [
+      "weirdcraft:ballsacksinmymouth"
+    ]
+  },
+  "itwasmodded": {
+    "sounds": [
+      "weirdcraft:itwasmodded"
+    ]
+  }
+}

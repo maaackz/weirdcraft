@@ -1,0 +1,32 @@
+{
+  "mappings": {
+    "com/maaackz/weirdcraft/mixin/ExampleMixin": {
+      "loadWorld": "Lnet/minecraft/server/MinecraftServer;method_3735()V"
+    },
+    "com/maaackz/weirdcraft/mixin/FallMixin": {
+      "tick": "Lnet/minecraft/class_3222;method_5773()V"
+    },
+    "com/maaackz/weirdcraft/mixin/HoldingSlabMixin": {
+      "playerTick": "Lnet/minecraft/class_3222;method_14226()V"
+    },
+    "com/maaackz/weirdcraft/mixin/ServerMixin": {
+      "loadWorld": "Lnet/minecraft/server/MinecraftServer;method_3735()V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "com/maaackz/weirdcraft/mixin/ExampleMixin": {
+        "loadWorld": "Lnet/minecraft/server/MinecraftServer;method_3735()V"
+      },
+      "com/maaackz/weirdcraft/mixin/FallMixin": {
+        "tick": "Lnet/minecraft/class_3222;method_5773()V"
+      },
+      "com/maaackz/weirdcraft/mixin/HoldingSlabMixin": {
+        "playerTick": "Lnet/minecraft/class_3222;method_14226()V"
+      },
+      "com/maaackz/weirdcraft/mixin/ServerMixin": {
+        "loadWorld": "Lnet/minecraft/server/MinecraftServer;method_3735()V"
+      }
+    }
+  }
+}

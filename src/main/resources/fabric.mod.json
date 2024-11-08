@@ -1,0 +1,61 @@
+{
+	"schemaVersion": 1,
+	"id": "weirdcraft",
+	"version": "${version}",
+	"name": "weirdcraft",
+	"description": "it was modded",
+	"authors": [
+		"maaackz"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/maaackz/weirdcraft-mod/"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/weirdcraft/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "com.maaackz.weirdcraft.Weirdcraft"
+		],
+		"client": [
+			"com.maaackz.weirdcraft.WeirdcraftClient"
+		],
+		"fabric-datagen": [
+          "com.maaackz.weirdcraft.WeirdcraftDataGenerator"
+		]
+	},
+	"mixins": [
+		"weirdcraft.mixins.json",
+		"client.weirdcraft.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.7",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": ">=7.2.0"
+	},
+	"recommends": {
+		"modmenu": ">=7.2.0"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.modrinth": "https://modrinth.com/mod/",
+				"modmenu.curseforge": "https://curseforge.com/minecraft/mc-mods/",
+				"modmenu.github_releases": "https://github.com/maaackz/weirdcraft-mod/releases",
+				"modmenu.discord": "https://discord.gg/"
+			}
+		},
+		"catalogue": {
+			"icon": {
+				"image": "ias_64.png",
+				"item": "minecraft:player_head"
+			},
+			"banner": "ias_240.png"
+		}
+	}
+}

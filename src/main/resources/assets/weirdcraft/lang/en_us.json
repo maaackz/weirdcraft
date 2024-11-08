@@ -1,0 +1,12 @@
+{
+  "itemgroup.weirdcraft": "weirdcraft",
+
+  "item.weirdcraft.banana": "Banana",
+  "item.weirdcraft.golden_banana": "Golden Banana",
+  "item.weirdcraft.enchanted_golden_banana": "Enchanted Golden Banana",
+
+  "item.weirdcraft.sand_ocean_music_disc": "§bMusic Disc",
+  "item.weirdcraft.sand_ocean_music_disc.desc": "Banjo Kazooie - Sand Ocean",
+  "advancements.weirdcraft.find_vanilla_pyramid.title": "uh u found desert temple"
+
+}

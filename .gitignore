@@ -1,7 +1,7 @@
 .gradle
 **/build/
 !src/**/build/
-
+run
 # Ignore Gradle GUI config
 gradle-app.setting
 
@@ -19,3 +19,7 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+/src/main/generated/.cache
+/src/main/generated
+/.idea
+/deprecated
