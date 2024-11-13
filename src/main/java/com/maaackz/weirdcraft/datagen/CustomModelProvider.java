@@ -27,7 +27,7 @@ public class CustomModelProvider extends FabricModelProvider {
 
 //        itemModelGenerator.register(CustomItems.SHOCK_COLLAR, Models.GENERATED);
         itemModelGenerator.register(CustomItems.POOP, Models.GENERATED);
-        //itemModelGenerator.register(CustomItems.ENCHANTED_GOLDEN_BANANA, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.ENCHANTED_GOLDEN_BANANA, Models.GENERATED);
 
     }
 }
