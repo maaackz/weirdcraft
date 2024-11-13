@@ -9,7 +9,11 @@
 		"HoldingSlabMixin",
 		"FallMixin",
 		"ComposterPoopMixin",
-		"PoopingMixin"
+		"PoopingMixin",
+		"SebHostileMixin",
+		"YinchariDeathMixin",
+		"BeeBehaviorMixin",
+		"BedDestroyMixin"
 	],
 	"client": [],
 	"injectors": {
