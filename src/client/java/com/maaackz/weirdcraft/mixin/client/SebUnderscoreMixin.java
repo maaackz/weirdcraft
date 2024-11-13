@@ -10,6 +10,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,6 +24,7 @@ public abstract class SebUnderscoreMixin extends FeatureRenderer<SheepEntity, Sh
         super(context);
     }
 
+    @Final
     @Shadow
     private SheepWoolEntityModel<SheepEntity> model;
 
@@ -35,16 +37,16 @@ public abstract class SebUnderscoreMixin extends FeatureRenderer<SheepEntity, Sh
                 int u;
                 if (sheepEntity.hasCustomName() && "seb_".equals(sheepEntity.getName().getString())) {
                     // Define colors for red and blue
-                    int red = 0xFFFF0000;  // Red in ARGB
-                    int blue = 0xFF0000FF; // Blue in ARGB
+                    int red = 0xFFAA0000;  // Red in ARGB
+                    int blue = 0xFF0000AA; // Blue in ARGB
 
-                    // Set the duration of each color phase and transition
-                    int cycleDuration = 30; // Total cycle duration in ticks
-                    int solidColorDuration = 12; // Duration for each solid color phase
-                    int transitionDuration = 3; // Duration for each transition phase (for brief purple)
+                    // Set as floats if finer control over timing is needed
+                    float cycleDuration = 60.0f;
+                    float solidColorDuration = 27.75f;
+                    float transitionDuration = 2.25f;
 
-                    // Calculate progress within the cycle
-                    int cycleProgress = sheepEntity.age % cycleDuration;
+// Calculate progress within the cycle
+                    float cycleProgress = sheepEntity.age % cycleDuration;
                     float r;
 
                     if (cycleProgress < solidColorDuration) {
@@ -52,16 +54,17 @@ public abstract class SebUnderscoreMixin extends FeatureRenderer<SheepEntity, Sh
                         u = red;
                     } else if (cycleProgress < solidColorDuration + transitionDuration) {
                         // Transition from Red to Blue
-                        r = (cycleProgress - solidColorDuration) / (float) transitionDuration;
+                        r = (cycleProgress - solidColorDuration) / transitionDuration;
                         u = ColorHelper.Argb.lerp(r, red, blue);
                     } else if (cycleProgress < 2 * solidColorDuration + transitionDuration) {
                         // Hold at Blue
                         u = blue;
                     } else {
                         // Transition from Blue to Red
-                        r = (cycleProgress - (2 * solidColorDuration + transitionDuration)) / (float) transitionDuration;
+                        r = (cycleProgress - (2 * solidColorDuration + transitionDuration)) / transitionDuration;
                         u = ColorHelper.Argb.lerp(r, blue, red);
                     }
+
 
                     // Render with the updated color
                     render(this.getContextModel(), model, SKIN, matrixStack, vertexConsumerProvider, i, sheepEntity, f, g, j, k, l, h, u);
