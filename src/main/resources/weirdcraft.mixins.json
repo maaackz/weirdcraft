@@ -13,7 +13,7 @@
 		"SebHostileMixin",
 		"YinchariDeathMixin",
 		"BeeBehaviorMixin",
-		"BedDestroyMixin"
+		"BedDestroyMonitorMixin"
 	],
 	"client": [],
 	"injectors": {
