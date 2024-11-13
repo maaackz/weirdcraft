@@ -61,7 +61,7 @@ public class FallMixin {
 							aaaaaSoundKey,           // Sound event to play (replace with your custom sound event key)
 							SoundCategory.PLAYERS,    // Sound category (Players in this case)
 							player,                   // The entity from which the sound originates (the player)
-							1.0F,                     // Volume
+							0.25F,                     // Volume
 							1.0F,                     // Pitch
 							seed                      // Seed for the sound instance
 					));
