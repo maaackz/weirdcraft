@@ -18,7 +18,6 @@ import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,12 +45,11 @@ public class Weirdcraft implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(TimePayload.ID, TimePayload.CODEC);
 
 		final Map<ServerPlayerEntity, Boolean> activePlayers = new ConcurrentHashMap<>();
-
+		final Map<ServerPlayerEntity, Boolean> lastActionMap = new ConcurrentHashMap<>();
 
 		ServerPlayNetworking.registerGlobalReceiver(TimePayload.ID, (payload, context) -> {
 			context.server().execute(() -> {
 				ServerPlayerEntity player = context.player();
-				ServerWorld world = player.getServerWorld();
 
 				if (payload.active()) {
 					if (payload.advancing()) {
@@ -64,6 +62,7 @@ public class Weirdcraft implements ModInitializer {
 				} else {
 					// Stop time adjustment
 					activePlayers.remove(player);
+					lastActionMap.remove(player); // Reset last action when stopping
 				}
 			});
 		});
@@ -71,14 +70,24 @@ public class Weirdcraft implements ModInitializer {
 		// Register server tick callback during initialization
 		ServerTickEvents.START_WORLD_TICK.register(server -> {
 			for (Map.Entry<ServerPlayerEntity, Boolean> entry : activePlayers.entrySet()) {
-				ServerWorld world = entry.getKey().getServerWorld();
-				if (entry.getValue()) {
-					// Advance time
-					System.out.println("server advancing");
+				ServerPlayerEntity player = entry.getKey();
+				ServerWorld world = player.getServerWorld();
+				Boolean currentAction = entry.getValue();
+				Boolean lastAction = lastActionMap.get(player);
+
+				// Only print if the action has changed
+				if (!currentAction.equals(lastAction)) {
+					if (currentAction) {
+						System.out.println("server advancing");
+					} else {
+						System.out.println("server reversing");
+					}
+					lastActionMap.put(player, currentAction); // Update last action
+				}
+
+				if (currentAction) {
 					PocketWatchItem.advanceTime(world);
 				} else {
-					// Reverse time
-					System.out.println("server reversing");
 					PocketWatchItem.reverseTime(world);
 				}
 			}
@@ -86,9 +95,9 @@ public class Weirdcraft implements ModInitializer {
 
 		// Check if EMI is loaded and register exclusions
 		if (FabricLoader.getInstance().isModLoaded("emi")) {
-
+			// EMI-specific logic here
 		}
+
 		LOGGER.info("weirdcraft mod initialized!");
 	}
-
 }

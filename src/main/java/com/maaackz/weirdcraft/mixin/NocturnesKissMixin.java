@@ -106,7 +106,7 @@ public abstract class NocturnesKissMixin {
 
     @Unique
     private void applyStrengthModifier(ServerPlayerEntity player, double additionalDamage) {
-        double strengthValue = additionalDamage;
+        double strengthValue = additionalDamage * 1.25;
 
         EntityAttributeModifier modifier = new EntityAttributeModifier(
                 Identifier.of(Weirdcraft.MOD_ID, "sleepless_str_mod"),
@@ -132,7 +132,7 @@ public abstract class NocturnesKissMixin {
 
     @Unique
     private void applyWeaknessModifier(ServerPlayerEntity player, double additionalDamage) {
-        double weaknessValue = -additionalDamage;
+        double weaknessValue = -additionalDamage * 0.75;
 
         EntityAttributeModifier weaknessModifier = new EntityAttributeModifier(
                 Identifier.of(Weirdcraft.MOD_ID, "daytime_weakness_mod"),
