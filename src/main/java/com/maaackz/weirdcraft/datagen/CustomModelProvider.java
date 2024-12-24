@@ -1,5 +1,6 @@
 package com.maaackz.weirdcraft.datagen;
 
+import com.maaackz.weirdcraft.block.CustomBlocks;
 import com.maaackz.weirdcraft.item.CustomItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
@@ -15,6 +16,10 @@ public class CustomModelProvider extends FabricModelProvider {
     @Override
     public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
 
+        blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.WEIRDIUM_BLOCK);
+        blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.WEIRDIUM_ORE);
+        blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.RAW_WEIRDIUM_BLOCK);
+        blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE);
     }
 
     @Override
@@ -29,5 +34,14 @@ public class CustomModelProvider extends FabricModelProvider {
         itemModelGenerator.register(CustomItems.POOP, Models.GENERATED);
         itemModelGenerator.register(CustomItems.ENCHANTED_GOLDEN_BANANA, Models.GENERATED);
 
+//        itemModelGenerator.register(CustomItems.ENCHANTED_GOLDEN_BANANA, Models.GENERATED);
+//        itemModelGenerator.register(CustomItems.ENCHANTED_GOLDEN_BANANA, Models.GENERATED);
+
+        itemModelGenerator.register(CustomItems.RAW_WEIRDIUM, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.WEIRDIUM_INGOT, Models.GENERATED);
+
+        itemModelGenerator.register(CustomItems.POCKET_WATCH, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.RAINES_CLOUD, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.NOCTURNES_KISS, Models.GENERATED);
     }
 }

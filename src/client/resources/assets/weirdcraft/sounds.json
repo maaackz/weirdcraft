@@ -37,5 +37,20 @@
     "sounds": [
       "weirdcraft:itwasmodded"
     ]
+  },
+  "papayaeatsound": {
+    "sounds": [
+      "weirdcraft:papayaeatsound"
+    ]
+  },
+  "valo_match_found": {
+    "sounds": [
+      "weirdcraft:valo_match_found"
+    ]
+  },
+  "jesus_bell": {
+    "sounds": [
+      "weirdcraft:jesus_bell"
+    ]
   }
 }

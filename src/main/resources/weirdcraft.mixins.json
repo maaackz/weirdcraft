@@ -1,22 +1,25 @@
 {
-	"required": true,
-	"minVersion": "0.8",
-	"package": "com.maaackz.weirdcraft.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin",
-		"ServerMixin",
-		"HoldingSlabMixin",
-		"FallMixin",
-		"ComposterPoopMixin",
-		"PoopingMixin",
-		"SebHostileMixin",
-		"YinchariDeathMixin",
-		"BeeBehaviorMixin",
-		"BedDestroyMonitorMixin"
-	],
-	"client": [],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.maaackz.weirdcraft.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BedDestroyMonitorMixin",
+    "BeeBehaviorMixin",
+    "ComposterPoopMixin",
+    "DeathMixin",
+    "ExampleMixin",
+    "FallMixin",
+    "HoldingSlabMixin",
+    "PapayaEatSoundMixin",
+    "GavinSleeplessMixin",
+    "PoopingMixin",
+    "RaineLightningMixin",
+    "SebHostileMixin",
+    "ServerMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }

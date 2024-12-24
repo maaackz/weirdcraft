@@ -5,7 +5,6 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.passive.BeeEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.EnumSet;
@@ -14,16 +13,18 @@ import java.util.UUID;
 
 public class FollowPlayerGoal extends Goal {
     private final BeeEntity bee;
+    private final UUID targetUuid; // The UUID of the target player
     private int tick = 0;
 
     public FollowPlayerGoal(BeeEntity bee, UUID targetUuid) {
         this.bee = bee;
+        this.targetUuid = targetUuid;
         this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
     }
 
     @Override
     public boolean canStart() {
-        Optional<ServerPlayerEntity> player = findNearestPlayer();
+        Optional<ServerPlayerEntity> player = findTargetPlayer();
         if (player.isEmpty()) {
             return false;
         }
@@ -35,7 +36,7 @@ public class FollowPlayerGoal extends Goal {
 
     @Override
     public boolean shouldContinue() {
-        Optional<ServerPlayerEntity> player = findNearestPlayer();
+        Optional<ServerPlayerEntity> player = findTargetPlayer();
         if (player.isEmpty()) {
             return false;
         }
@@ -57,7 +58,7 @@ public class FollowPlayerGoal extends Goal {
 
     @Override
     public void tick() {
-        Optional<ServerPlayerEntity> player = findNearestPlayer();
+        Optional<ServerPlayerEntity> player = findTargetPlayer();
         if (player.isPresent()) {
             PlayerEntity targetPlayer = player.get();
             bee.getLookControl().lookAt(targetPlayer, 10F, (float) bee.getMaxLookPitchChange());
@@ -75,27 +76,17 @@ public class FollowPlayerGoal extends Goal {
                 if (squaredDistance < 1024D) {
                     bee.getNavigation().setRangeMultiplier(32F);
                     bee.getNavigation().startMovingTo(targetPlayer, speed);
-                } else {
-                    // Random movement near player if too far
-                    for (int i = 0; i < 10; i++) {
-                        int dx = bee.getRandom().nextInt(5) - 2;
-                        int dy = bee.getRandom().nextInt(2) + 1;
-                        int dz = bee.getRandom().nextInt(5) - 2;
-                        BlockPos offset = new BlockPos(dx, dy, dz);
-
-                        if (bee.getWorld().isSpaceEmpty(bee, bee.getBoundingBox().offset(offset))) {
-                            BlockPos position = targetPlayer.getBlockPos().add(offset);
-                            double x = position.getX() + 0.5D;
-                            double y = position.getY() + 0.5D;
-                            double z = position.getZ() + 0.5D;
-                            bee.getNavigation().stop();
-                            bee.refreshPositionAndAngles(x, y, z, bee.getYaw(), bee.getPitch());
-                            break;
-                        }
-                    }
                 }
             }
         }
+    }
+
+    // Helper method to find the specific target player by UUID
+    private Optional<ServerPlayerEntity> findTargetPlayer() {
+        World world = bee.getWorld();
+        return (Optional<ServerPlayerEntity>) world.getPlayers().stream()
+                .filter(player -> player.getUuid().equals(targetUuid))
+                .findFirst();
     }
 
     // Helper method to find the nearest player

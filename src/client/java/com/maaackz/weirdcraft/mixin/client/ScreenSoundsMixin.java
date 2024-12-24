@@ -31,9 +31,16 @@ public abstract class ScreenSoundsMixin {
 	@Inject(at = @At("HEAD"), method = "setScreen")
 	private void onScreenChanged(Screen screen, CallbackInfo info) {
 		if (screen != null ) {
-			Text titleText = screen.getTitle();
 
-			// Convert the title text to a string
+
+			System.out.println("Extracted screen: " + screen.getClass().getName());
+			if (screen.getClass().getName().contains("ConnectScreen"))
+			{
+				System.out.println("MATCH FOUND");
+				this.getSoundManager().play(PositionedSoundInstance.master(CustomSounds.VALO_MATCH_FOUND, 1.0F, 0.35F));
+			}
+
+			Text titleText = screen.getTitle();
 			String titleString = titleText.toString();
 
 			// Regular expression to extract the key from the format

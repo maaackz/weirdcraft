@@ -34,7 +34,7 @@ public class FallMixin {
 		if (player.getVelocity().y < -0.5) {  // Adjust this threshold as needed
 			// Perform a raycast straight downwards to determine the distance to the ground
 			Vec3d startPos = player.getPos();
-			Vec3d endPos = startPos.add(0, -5, 0);  // Raycast 5 blocks downwards
+			Vec3d endPos = startPos.add(0, -7, 0);  // Raycast 5 blocks downwards
 
 			BlockHitResult hitResult = player.getWorld().raycast(new RaycastContext(
 					startPos,
@@ -57,14 +57,17 @@ public class FallMixin {
 					seed = player.getRandom().nextInt();
 
 					// Send the PlaySoundFromEntityS2CPacket to play the sound from the player
-					player.networkHandler.sendPacket(new PlaySoundFromEntityS2CPacket(
-							aaaaaSoundKey,           // Sound event to play (replace with your custom sound event key)
-							SoundCategory.PLAYERS,    // Sound category (Players in this case)
-							player,                   // The entity from which the sound originates (the player)
-							0.25F,                     // Volume
-							1.0F,                     // Pitch
-							seed                      // Seed for the sound instance
-					));
+					for (ServerPlayerEntity serverPlayer : player.server.getPlayerManager().getPlayerList()) {
+						serverPlayer.networkHandler.sendPacket(new PlaySoundFromEntityS2CPacket(
+								aaaaaSoundKey,            // Sound event to play (replace with your custom sound event key)
+								SoundCategory.PLAYERS,    // Sound category (Players in this case)
+								player,                   // The entity from which the sound originates (the player)
+								0.25F,                    // Volume
+								1.0F,                     // Pitch
+								seed                      // Seed for the sound instance
+						));
+					}
+
 					soundPlaying = true;  // Set the flag to indicate the sound is playing
 				}
 			}
@@ -72,9 +75,14 @@ public class FallMixin {
 			// Reset the flag when the player is no longer falling
 			if (soundPlaying) {
 				soundPlaying = false;
-				player.networkHandler.sendPacket(new StopSoundS2CPacket(CustomSounds.AAAAA_SOUND.getId(),SoundCategory.PLAYERS));
-				// Optionally: handle stopping sound logic if necessary
+				for (ServerPlayerEntity serverPlayer : player.server.getPlayerManager().getPlayerList()) {
+					serverPlayer.networkHandler.sendPacket(
+						new StopSoundS2CPacket(CustomSounds.AAAAA_SOUND.getId(), SoundCategory.PLAYERS)
+					);
+				}
+				// Optionally: handle any additional stopping logic here
 			}
+
 		}
 	}
 }

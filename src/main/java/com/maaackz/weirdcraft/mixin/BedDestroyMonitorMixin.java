@@ -7,6 +7,8 @@ import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
@@ -14,6 +16,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -23,6 +26,8 @@ import java.util.Map;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class BedDestroyMonitorMixin {
+
+    @Shadow public abstract void playSoundToPlayer(SoundEvent sound, SoundCategory category, float volume, float pitch);
 
     private BlockPos previousBedPos = null; // Store the previous bed/spawn position for monitoring
     private Formatting lastBedFormatting = Formatting.RED; // Default color if bed color is unknown
@@ -38,7 +43,7 @@ public abstract class BedDestroyMonitorMixin {
         COLOR_FORMATTING_MAP.put(DyeColor.LIGHT_BLUE, Formatting.AQUA);
         COLOR_FORMATTING_MAP.put(DyeColor.YELLOW, Formatting.YELLOW);
         COLOR_FORMATTING_MAP.put(DyeColor.LIME, Formatting.GREEN);
-        COLOR_FORMATTING_MAP.put(DyeColor.PINK, Formatting.RED);
+        COLOR_FORMATTING_MAP.put(DyeColor.PINK, Formatting.LIGHT_PURPLE);
         COLOR_FORMATTING_MAP.put(DyeColor.GRAY, Formatting.DARK_GRAY);
         COLOR_FORMATTING_MAP.put(DyeColor.LIGHT_GRAY, Formatting.GRAY);
         COLOR_FORMATTING_MAP.put(DyeColor.CYAN, Formatting.DARK_AQUA);
@@ -84,9 +89,10 @@ public abstract class BedDestroyMonitorMixin {
                     player.networkHandler.sendPacket(new TitleS2CPacket(Text.of("BED DESTROYED!").copy().styled(style -> style.withColor(0xFF0000))));
                     player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.of("You will no longer respawn!")));
 
-                    world.playSound(null, spawnPos, net.minecraft.sound.SoundEvents.ENTITY_ENDER_DRAGON_GROWL,
-                            net.minecraft.sound.SoundCategory.HOSTILE, 1.0F, 1.0F);
-
+                    world.playSound(null, nearestPlayer.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_ENDER_DRAGON_GROWL,
+                            net.minecraft.sound.SoundCategory.HOSTILE, 0.5F, 1.0F);
+                    this.playSoundToPlayer(net.minecraft.sound.SoundEvents.ENTITY_ENDER_DRAGON_GROWL,
+                            net.minecraft.sound.SoundCategory.HOSTILE, 0.5F, 1.0F);
                     for (ServerPlayerEntity playerEntity : world.getServer().getPlayerManager().getPlayerList()) {
                         playerEntity.sendMessage(
                                 Text.empty()

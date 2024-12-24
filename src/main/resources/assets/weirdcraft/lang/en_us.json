@@ -4,9 +4,20 @@
   "item.weirdcraft.banana": "Banana",
   "item.weirdcraft.golden_banana": "Golden Banana",
   "item.weirdcraft.enchanted_golden_banana": "Enchanted Golden Banana",
+  "item.weirdcraft.poop": "Poop",
 
   "item.weirdcraft.sand_ocean_music_disc": "§bMusic Disc",
   "item.weirdcraft.sand_ocean_music_disc.desc": "Banjo Kazooie - Sand Ocean",
+
+  "block.weirdcraft.weirdium_ore": "Weirdium Ore",
+  "block.weirdcraft.weirdium_block": "Block of Weirdium",
+  "item.weirdcraft.raw_weirdium": "Raw Weirdium",
+  "item.weirdcraft.weirdium_ingot": "Weirdium Ingot",
+
+  "item.weirdcraft.raines_cloud": "Raine's Cloud",
+  "item.weirdcraft.pocket_watch": "Pocket Watch",
+  "item.weirdcraft.nocturnes_kiss": "Nocturne's Kiss",
+
   "advancements.weirdcraft.find_vanilla_pyramid.title": "uh u found desert temple"
 
 }

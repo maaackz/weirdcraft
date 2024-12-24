@@ -4,7 +4,9 @@ import com.maaackz.weirdcraft.item.CustomItems;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.loot.LootPool;
 import net.minecraft.loot.condition.RandomChanceLootCondition;
+import net.minecraft.loot.condition.RandomChanceWithEnchantedBonusLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
+import net.minecraft.loot.function.EnchantedCountIncreaseLootFunction;
 import net.minecraft.loot.function.SetCountLootFunction;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
 import net.minecraft.loot.provider.number.UniformLootNumberProvider;
@@ -33,9 +35,11 @@ public class CustomLootTableModifiers {
             if (JUNGLE_LEAVES_ID.equals(id)) {
                 LootPool pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-//                        .conditionally(RandomChanceWithEnchantedBonusLootCondition.builder(0.005f, 0.02f))
+                        .conditionally(RandomChanceLootCondition.builder(1f))
+                        .conditionally(RandomChanceWithEnchantedBonusLootCondition.builder(registries, 0.025f, 0.01f))
                         .with(ItemEntry.builder(CustomItems.BANANA))
                         .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1.0f, 1.0f)).build())
+                        .apply(EnchantedCountIncreaseLootFunction.builder(registries, UniformLootNumberProvider.create(0.0f, 1.0f)).withLimit(3).build())
                         .build();
 
                 // Use modifyPools to add the pool
