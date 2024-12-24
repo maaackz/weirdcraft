@@ -12,10 +12,12 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,9 +83,12 @@ public class Weirdcraft implements ModInitializer {
 				}
 			}
 		});
+
+		// Check if EMI is loaded and register exclusions
+		if (FabricLoader.getInstance().isModLoaded("emi")) {
+
+		}
 		LOGGER.info("weirdcraft mod initialized!");
 	}
-
-
 
 }

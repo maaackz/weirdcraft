@@ -1,4 +1,4 @@
-{
+	{
 	"schemaVersion": 1,
 	"id": "weirdcraft",
 	"version": "${version}",
@@ -23,6 +23,9 @@
 		],
 		"fabric-datagen": [
           "com.maaackz.weirdcraft.WeirdcraftDataGenerator"
+		],
+		"emi": [
+			"com.maaackz.weirdcraft.EMICompat"
 		]
 	},
 	"mixins": [
@@ -36,7 +39,8 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"modmenu": ">=7.2.0"
+		"modmenu": ">=7.2.0",
+		"emi": "*"
 	},
 	"recommends": {
 		"modmenu": ">=7.2.0"

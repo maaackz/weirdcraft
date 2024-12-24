@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.client.BlockStateModelGenerator;
 import net.minecraft.data.client.ItemModelGenerator;
 import net.minecraft.data.client.Models;
+import net.minecraft.item.ArmorItem;
 
 public class CustomModelProvider extends FabricModelProvider {
     public CustomModelProvider(FabricDataOutput output) {
@@ -39,6 +40,17 @@ public class CustomModelProvider extends FabricModelProvider {
 
         itemModelGenerator.register(CustomItems.RAW_WEIRDIUM, Models.GENERATED);
         itemModelGenerator.register(CustomItems.WEIRDIUM_INGOT, Models.GENERATED);
+
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.WEIRDIUM_HELMET));
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.WEIRDIUM_CHESTPLATE));
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.WEIRDIUM_LEGGINGS));
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.WEIRDIUM_BOOTS));
+
+        itemModelGenerator.register(CustomItems.WEIRDIUM_SWORD, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.WEIRDIUM_AXE, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.WEIRDIUM_HOE, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.WEIRDIUM_PICKAXE, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.WEIRDIUM_SHOVEL, Models.GENERATED);
 
         itemModelGenerator.register(CustomItems.POCKET_WATCH, Models.GENERATED);
         itemModelGenerator.register(CustomItems.RAINES_CLOUD, Models.GENERATED);

@@ -38,8 +38,6 @@ public class CustomRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(CustomItems.RAW_WEIRDIUM), conditionsFromItem(CustomItems.RAW_WEIRDIUM))
                 .offerTo(exporter);
 
-
-
         ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, CustomItems.RAW_WEIRDIUM, 9)
                 .input(CustomBlocks.RAW_WEIRDIUM_BLOCK)
                 .criterion(hasItem(CustomBlocks.RAW_WEIRDIUM_BLOCK), conditionsFromItem(CustomBlocks.RAW_WEIRDIUM_BLOCK))
@@ -63,16 +61,81 @@ public class CustomRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(CustomItems.GOLDEN_BANANA), conditionsFromItem(CustomItems.GOLDEN_BANANA))
                 .offerTo(exporter);
 
-//        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, CustomItems.WEIRDIUM_INGOT, 9)
-//                .input(CustomBlocks.WEIRDIUM_BLOCK)
-//                .criterion(hasItem(CustomBlocks.WEIRDIUM_BLOCK), conditionsFromItem(CustomBlocks.WEIRDIUM_BLOCK))
-//                .offerTo(exporter);
+        // Weirdium Armor Recipes
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.WEIRDIUM_HELMET)
+                .pattern("III")
+                .pattern("I I")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
 
-//        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.RAW_PINK_GARNET, 32)
-//                .input(CustomBlocks.MAGIC_BLOCK)
-//                .criterion(hasItem(CustomBlocks.MAGIC_BLOCK), conditionsFromItem(ModBlocks.MAGIC_BLOCK))
-//                .offerTo(exporter, Identifier.of(Weirdcraft.MOD_ID, "raw_pink_garnet_from_magic_block"));
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.WEIRDIUM_CHESTPLATE)
+                .pattern("I I")
+                .pattern("III")
+                .pattern("III")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
 
-//        offerSmithingTrimRecipe(exporter, CustomItems.KAUPEN_SMITHING_TEMPLATE, Identifier.of(Weirdcraft.MOD_ID, "kaupen"));
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.WEIRDIUM_LEGGINGS)
+                .pattern("III")
+                .pattern("I I")
+                .pattern("I I")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.WEIRDIUM_BOOTS)
+                .pattern("I I")
+                .pattern("I I")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
+
+        // Weirdium Tool Recipes
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.WEIRDIUM_SWORD)
+                .pattern(" I ")
+                .pattern(" I ")
+                .pattern(" S ")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.WEIRDIUM_PICKAXE)
+                .pattern("III")
+                .pattern(" S ")
+                .pattern(" S ")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.WEIRDIUM_AXE)
+                .pattern("II ")
+                .pattern("IS ")
+                .pattern(" S ")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.WEIRDIUM_SHOVEL)
+                .pattern(" I ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.WEIRDIUM_HOE)
+                .pattern("II ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .input('I', CustomItems.WEIRDIUM_INGOT)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
+                .offerTo(exporter);
     }
 }

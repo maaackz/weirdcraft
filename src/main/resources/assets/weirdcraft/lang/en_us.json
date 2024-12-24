@@ -14,10 +14,20 @@
   "item.weirdcraft.raw_weirdium": "Raw Weirdium",
   "item.weirdcraft.weirdium_ingot": "Weirdium Ingot",
 
+  "item.weirdcraft.weirdium_helmet": "Weirdium Helmet",
+  "item.weirdcraft.weirdium_chestplate": "Weirdium Chestplate",
+  "item.weirdcraft.weirdium_leggings": "Weirdium Leggings",
+  "item.weirdcraft.weirdium_boots": "Weirdium Boots",
+
+  "item.weirdcraft.weirdium_sword": "Weirdium Sword",
+  "item.weirdcraft.weirdium_pickaxe": "Weirdium Pickaxe",
+  "item.weirdcraft.weirdium_axe": "Weirdium Axe",
+  "item.weirdcraft.weirdium_shovel": "Weirdium Shovel",
+  "item.weirdcraft.weirdium_hoe": "Weirdium Hoe",
+
   "item.weirdcraft.raines_cloud": "Raine's Cloud",
-  "item.weirdcraft.pocket_watch": "Pocket Watch",
+  "item.weirdcraft.pocket_watch": "Mysterious Pocket Watch",
   "item.weirdcraft.nocturnes_kiss": "Nocturne's Kiss",
 
   "advancements.weirdcraft.find_vanilla_pyramid.title": "uh u found desert temple"
-
 }

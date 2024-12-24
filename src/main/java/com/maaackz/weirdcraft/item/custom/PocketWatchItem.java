@@ -17,7 +17,7 @@ public class PocketWatchItem extends Item {
         return true;
     }
 
-    static int TIME_INCREMENT = 100;
+    static int TIME_INCREMENT = 50;
     public static void advanceTime(ServerWorld world) {
         long currentTime = world.getTimeOfDay();
         long newTime = (currentTime + TIME_INCREMENT) % 24000;
