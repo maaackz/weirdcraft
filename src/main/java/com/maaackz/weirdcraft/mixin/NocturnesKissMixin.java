@@ -106,7 +106,7 @@ public abstract class NocturnesKissMixin {
 
     @Unique
     private void applyStrengthModifier(ServerPlayerEntity player, double additionalDamage) {
-        double strengthValue = additionalDamage * 1.25;
+        double strengthValue = additionalDamage * 1.5;
 
         EntityAttributeModifier modifier = new EntityAttributeModifier(
                 Identifier.of(Weirdcraft.MOD_ID, "sleepless_str_mod"),
@@ -122,7 +122,7 @@ public abstract class NocturnesKissMixin {
             long currentTime = player.getWorld().getTimeOfDay(); // Use global game time
             long elapsedTime = calculateElapsedTime(currentTime, lastSleepTime);
             double daysSinceSlept = elapsedTime / 24000.0; // Assuming each Minecraft day is 24000 ticks
-            System.out.println("Days since last slept: " + daysSinceSlept + ", Additional Damage: " + additionalDamage);
+            System.out.println("Days since last slept: " + daysSinceSlept + ", Additional Damage: " + strengthValue);
             System.out.println("Time disparity: " + elapsedTime);
             player.sendMessage(Text.literal("§7§oNocturne whispers to you: You feel a surge of strength."), false);
             wasInStrength = true;
@@ -132,7 +132,7 @@ public abstract class NocturnesKissMixin {
 
     @Unique
     private void applyWeaknessModifier(ServerPlayerEntity player, double additionalDamage) {
-        double weaknessValue = -additionalDamage * 0.75;
+        double weaknessValue = -additionalDamage * 0.825;
 
         EntityAttributeModifier weaknessModifier = new EntityAttributeModifier(
                 Identifier.of(Weirdcraft.MOD_ID, "daytime_weakness_mod"),
@@ -151,7 +151,7 @@ public abstract class NocturnesKissMixin {
             long currentTime = player.getWorld().getTimeOfDay(); // Use global game time
             long elapsedTime = calculateElapsedTime(currentTime, lastSleepTime);
             double daysSinceSlept = elapsedTime / 24000.0; // Assuming each Minecraft day is 24000 ticks
-            System.out.println("Days since last slept: " + daysSinceSlept + ", Additional Damage: " + additionalDamage);
+            System.out.println("Days since last slept: " + daysSinceSlept + ", Additional Damage: " + weaknessValue);
             System.out.println("Time disparity: " + elapsedTime);
         }
     }

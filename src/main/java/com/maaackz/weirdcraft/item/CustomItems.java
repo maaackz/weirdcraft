@@ -1,6 +1,7 @@
 package com.maaackz.weirdcraft.item;
 
 import com.maaackz.weirdcraft.Weirdcraft;
+import com.maaackz.weirdcraft.item.custom.DreamcastHelmetItem;
 import com.maaackz.weirdcraft.item.custom.EnchantedGoldenBananaItem;
 import com.maaackz.weirdcraft.item.custom.PocketWatchItem;
 import com.maaackz.weirdcraft.item.custom.WeirdiumToolMaterial;
@@ -63,6 +64,12 @@ public class CustomItems {
 
     public static final Item NOCTURNES_KISS = registerItem("nocturnes_kiss",
             new Item(new Item.Settings()
+                    .rarity(Rarity.EPIC)
+            )
+    );
+
+    public static final Item DREAMCAST = registerItem("dreamcast",
+            new DreamcastHelmetItem(new Item.Settings()
                     .rarity(Rarity.EPIC)
             )
     );

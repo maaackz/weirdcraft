@@ -3,16 +3,20 @@ package com.maaackz.weirdcraft;
 import com.maaackz.weirdcraft.block.CustomBlocks;
 import com.maaackz.weirdcraft.item.CustomItemGroups;
 import com.maaackz.weirdcraft.item.CustomItems;
+import com.maaackz.weirdcraft.item.custom.DreamcastHelmetItem;
 import com.maaackz.weirdcraft.item.custom.PocketWatchItem;
+import com.maaackz.weirdcraft.network.SleepPayload;
 import com.maaackz.weirdcraft.network.TimePayload;
 import com.maaackz.weirdcraft.sound.CustomSounds;
 import com.maaackz.weirdcraft.util.CustomLootTableModifiers;
 import com.maaackz.weirdcraft.world.gen.CustomWorldGeneration;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
@@ -89,6 +93,26 @@ public class Weirdcraft implements ModInitializer {
 					PocketWatchItem.advanceTime(world);
 				} else {
 					PocketWatchItem.reverseTime(world);
+				}
+			}
+		});
+
+		// DREAMCAST SLEEP SPECTATE STUFF
+		PayloadTypeRegistry.playS2C().register(SleepPayload.ID, SleepPayload.CODEC);
+
+		EntitySleepEvents.START_SLEEPING.register((player, pos) -> {
+			if (player instanceof ServerPlayerEntity serverPlayer &&
+					serverPlayer.getEquippedStack(EquipmentSlot.HEAD).getItem() instanceof DreamcastHelmetItem) {
+
+				ServerPlayNetworking.send(serverPlayer, new SleepPayload(true));
+
+			}
+		});
+
+		EntitySleepEvents.STOP_SLEEPING.register((player, sleepingPos) -> {
+			if (player instanceof ServerPlayerEntity serverPlayer) {
+				if (serverPlayer.getCameraEntity() != serverPlayer) {
+					ServerPlayNetworking.send(serverPlayer, new SleepPayload(false));
 				}
 			}
 		});

@@ -1,6 +1,7 @@
 package com.maaackz.weirdcraft;
 
 import com.maaackz.weirdcraft.item.custom.PocketWatchItem;
+import com.maaackz.weirdcraft.network.SleepPayload;
 import com.maaackz.weirdcraft.network.TimePayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -76,6 +77,28 @@ public class WeirdcraftClient implements ClientModInitializer {
 					System.out.println("Stopped reversing time...");
 				}
 			}
+		});
+// NOTE: PayloadTypeRegistry has 2 functions:
+//       - playS2C is for server -> client communication
+//       - playC2S is for client -> server communication
+
+// In your common initializer method
+
+
+// Client-side handler to process the SleepPayload
+		ClientPlayNetworking.registerGlobalReceiver(SleepPayload.ID, (payload, context) -> {
+			context.client().execute(() -> {
+				boolean isSleeping = payload.bool();
+
+				// Trigger Dreamcasting logic based on whether the player is sleeping
+				if (isSleeping) {
+					// Handle the start of the sleep (Dreamcasting)
+					ClientDreamcasting.dreamcast(context.client(), true);  // You may pass additional data as needed
+				} else {
+					// Handle the stop of the sleep
+					ClientDreamcasting.dreamcast(context.client(), false);  // Similarly, handle stop logic
+				}
+			});
 		});
 
 

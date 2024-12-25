@@ -16,7 +16,8 @@
 		"SebUnderscoreMixin",
 		"ECrowParrotMixin",
 		"NearDeathMixin",
-		"TooltipMixin"
+		"TooltipMixin",
+		"DreamcastMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
