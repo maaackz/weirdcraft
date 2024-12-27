@@ -55,5 +55,6 @@ public class CustomModelProvider extends FabricModelProvider {
         itemModelGenerator.register(CustomItems.POCKET_WATCH, Models.GENERATED);
         itemModelGenerator.register(CustomItems.RAINES_CLOUD, Models.GENERATED);
         itemModelGenerator.register(CustomItems.NOCTURNES_KISS, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.HOLY_MACKEREL, Models.GENERATED);
     }
 }

@@ -20,9 +20,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerPlayerEntity.class)
 public class FallMixin {
 
-	private boolean soundPlaying = false;  // Flag to track if the sound is playing
+	private boolean soundPlaying = false; // Flag to track if the sound is playing
 	private int seed;
-
 
 	@Inject(at = @At("HEAD"), method = "tick")
 	private void onTick(CallbackInfo info) {
@@ -31,10 +30,10 @@ public class FallMixin {
 		if (player.getWorld() == null) return; // Check if the world is valid
 
 		// Check if the player is falling
-		if (player.getVelocity().y < -0.5) {  // Adjust this threshold as needed
+		if (player.getVelocity().y < -0.5 && !player.isOnGround() && !player.isFallFlying()) { // Adjust the threshold as needed
 			// Perform a raycast straight downwards to determine the distance to the ground
 			Vec3d startPos = player.getPos();
-			Vec3d endPos = startPos.add(0, -7, 0);  // Raycast 5 blocks downwards
+			Vec3d endPos = startPos.add(0, -7, 0); // Raycast 7 blocks downwards
 
 			BlockHitResult hitResult = player.getWorld().raycast(new RaycastContext(
 					startPos,
@@ -62,13 +61,13 @@ public class FallMixin {
 								aaaaaSoundKey,            // Sound event to play (replace with your custom sound event key)
 								SoundCategory.PLAYERS,    // Sound category (Players in this case)
 								player,                   // The entity from which the sound originates (the player)
-								0.25F,                    // Volume
+								0.2F,                     // Volume
 								1.0F,                     // Pitch
 								seed                      // Seed for the sound instance
 						));
 					}
 
-					soundPlaying = true;  // Set the flag to indicate the sound is playing
+					soundPlaying = true; // Set the flag to indicate the sound is playing
 				}
 			}
 		} else {
@@ -77,12 +76,11 @@ public class FallMixin {
 				soundPlaying = false;
 				for (ServerPlayerEntity serverPlayer : player.server.getPlayerManager().getPlayerList()) {
 					serverPlayer.networkHandler.sendPacket(
-						new StopSoundS2CPacket(CustomSounds.AAAAA_SOUND.getId(), SoundCategory.PLAYERS)
+							new StopSoundS2CPacket(CustomSounds.AAAAA_SOUND.getId(), SoundCategory.PLAYERS)
 					);
 				}
 				// Optionally: handle any additional stopping logic here
 			}
-
 		}
 	}
 }

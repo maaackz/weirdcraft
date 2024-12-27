@@ -19,7 +19,7 @@ import net.minecraft.world.gen.feature.OreFeatureConfig;
 import java.util.List;
 
 public class CustomConfiguredFeatures {
-    public static final RegistryKey<ConfiguredFeature<?, ?>> WEIRDIUM_ORE_KEY = registerKey("pink_garnet_ore");
+    public static final RegistryKey<ConfiguredFeature<?, ?>> WEIRDIUM_ORE_KEY = registerKey("weirdium_ore");
 //    public static final RegistryKey<ConfiguredFeature<?, ?>> NETHER_PINK_GARNET_ORE_KEY = registerKey("nether_pink_garnet_ore");
 //    public static final RegistryKey<ConfiguredFeature<?, ?>> END_PINK_GARNET_ORE_KEY = registerKey("end_pink_garnet_ore");
 
@@ -29,7 +29,7 @@ public class CustomConfiguredFeatures {
         RuleTest netherReplaceables = new TagMatchRuleTest(BlockTags.BASE_STONE_NETHER);
         RuleTest endReplaceables = new BlockMatchRuleTest(Blocks.END_STONE);
 
-        List<OreFeatureConfig.Target> overworldPinkGarnetOres =
+        List<OreFeatureConfig.Target> overworldWeirdiumOres =
                 List.of(OreFeatureConfig.createTarget(stoneReplaceables, CustomBlocks.WEIRDIUM_ORE.getDefaultState()),
                         OreFeatureConfig.createTarget(deepslateReplaceables, CustomBlocks.DEEPSLATE_WEIRDIUM_ORE.getDefaultState()));
 //        List<OreFeatureConfig.Target> netherPinkGarnetOres =
@@ -37,7 +37,7 @@ public class CustomConfiguredFeatures {
 //        List<OreFeatureConfig.Target> endPinkGarnetOres =
 //                List.of(OreFeatureConfig.createTarget(endReplaceables, CustomBlocks.PINK_GARNET_END_ORE.getDefaultState()));
 
-        register(context, WEIRDIUM_ORE_KEY, Feature.ORE, new OreFeatureConfig(overworldPinkGarnetOres, 4));
+        register(context, WEIRDIUM_ORE_KEY, Feature.ORE, new OreFeatureConfig(overworldWeirdiumOres, 4,0.25F));
 //        register(context, NETHER_PINK_GARNET_ORE_KEY, Feature.ORE, new OreFeatureConfig(netherPinkGarnetOres, 9));
 //        register(context, END_PINK_GARNET_ORE_KEY, Feature.ORE, new OreFeatureConfig(endPinkGarnetOres, 9));
     }

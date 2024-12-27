@@ -1,12 +1,13 @@
 package com.maaackz.weirdcraft;
 
 import com.maaackz.weirdcraft.block.CustomBlocks;
+import com.maaackz.weirdcraft.datagen.CustomEntities;
+import com.maaackz.weirdcraft.datagen.CustomEntityAttributes;
 import com.maaackz.weirdcraft.item.CustomItemGroups;
 import com.maaackz.weirdcraft.item.CustomItems;
 import com.maaackz.weirdcraft.item.custom.DreamcastHelmetItem;
 import com.maaackz.weirdcraft.item.custom.PocketWatchItem;
-import com.maaackz.weirdcraft.network.SleepPayload;
-import com.maaackz.weirdcraft.network.TimePayload;
+import com.maaackz.weirdcraft.network.*;
 import com.maaackz.weirdcraft.sound.CustomSounds;
 import com.maaackz.weirdcraft.util.CustomLootTableModifiers;
 import com.maaackz.weirdcraft.world.gen.CustomWorldGeneration;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Weirdcraft implements ModInitializer {
 
@@ -40,6 +42,8 @@ public class Weirdcraft implements ModInitializer {
 		CustomItems.registerItems();
 		CustomBlocks.registerBlocks();
 		CustomSounds.registerSounds();
+		CustomEntities.registerEntities();
+		CustomEntityAttributes.registerAttributes();
 
 		CustomLootTableModifiers.modifyLootTables();
 
@@ -99,6 +103,9 @@ public class Weirdcraft implements ModInitializer {
 
 		// DREAMCAST SLEEP SPECTATE STUFF
 		PayloadTypeRegistry.playS2C().register(SleepPayload.ID, SleepPayload.CODEC);
+// In your common initializer method
+		PayloadTypeRegistry.playC2S().register(EntityRequestPayload.ID, EntityRequestPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(EntityResponsePayload.ID, EntityResponsePayload.CODEC);
 
 		EntitySleepEvents.START_SLEEPING.register((player, pos) -> {
 			if (player instanceof ServerPlayerEntity serverPlayer &&
@@ -117,6 +124,38 @@ public class Weirdcraft implements ModInitializer {
 			}
 		});
 
+		ServerPlayNetworking.registerGlobalReceiver(EntityRequestPayload.ID, (payload, context) -> {
+			context.server().execute(() -> {
+				System.out.println("Entity request received.");
+				ServerPlayerEntity player = context.player();
+
+				DreamcastingServer.handleEntityRequest(player);
+
+			});
+		});
+
+		// Raine's Cloud stuff
+		PayloadTypeRegistry.playC2S().register(WeatherPayload.ID, WeatherPayload.CODEC);
+
+		ServerPlayNetworking.registerGlobalReceiver(WeatherPayload.ID, (payload, context) -> {
+			context.server().execute(() -> {
+				ServerPlayerEntity player = context.player();
+
+				if (payload.weather() == 1) {
+					// Clear weather
+					player.getServerWorld().resetWeather();
+				} else if (payload.weather() == 2) {
+					// Set rain with a random duration (12,000 to 18,000 ticks)
+					int rainDuration = ThreadLocalRandom.current().nextInt(12000, 18001);
+					player.getServerWorld().setWeather(0, rainDuration, true, false);
+				} else if (payload.weather() == 3) {
+					// Set thunderstorm with a random duration (3,000 to 9,000 ticks)
+					int thunderDuration = ThreadLocalRandom.current().nextInt(3000, 9001);
+					player.getServerWorld().setWeather(0, thunderDuration, true, true);
+				}
+			});
+		});
+
 		// Check if EMI is loaded and register exclusions
 		if (FabricLoader.getInstance().isModLoaded("emi")) {
 			// EMI-specific logic here
@@ -124,4 +163,5 @@ public class Weirdcraft implements ModInitializer {
 
 		LOGGER.info("weirdcraft mod initialized!");
 	}
+
 }

@@ -17,7 +17,7 @@ public class CustomItemGroups {
             Identifier.of(Weirdcraft.MOD_ID, "weirdcraft"),
             FabricItemGroup.builder()
                     .displayName(Text.translatable("itemgroup.weirdcraft"))
-                    .icon(() -> new ItemStack(CustomItems.SAND_OCEAN_MUSIC_DISC))
+                    .icon(() -> new ItemStack(CustomItems.WEIRDIUM_INGOT))
                     .entries((displayContext, entries) -> {
                         // Add all custom items to the group
                         entries.add(CustomItems.SAND_OCEAN_MUSIC_DISC);

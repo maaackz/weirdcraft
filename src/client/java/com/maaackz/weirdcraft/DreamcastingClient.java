@@ -1,6 +1,8 @@
 package com.maaackz.weirdcraft;
 
+import com.maaackz.weirdcraft.network.EntityRequestPayload;
 import com.mojang.logging.LogUtils;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.SleepingChatScreen;
@@ -14,7 +16,7 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Random;
 
-public class ClientDreamcasting {
+public class DreamcastingClient {
 
     private static boolean isDreamcasting = false; // Track if the client is in dreamcasting mode
     private static Screen previousScreen = null; // Store the previous screen before switching
@@ -23,7 +25,7 @@ public class ClientDreamcasting {
     // Method to toggle Dreamcasting mode and spectate a random entity
     public static void dreamcast(MinecraftClient client, boolean enable) {
         isDreamcasting = enable;
-
+        requestEntityFromServer();
         // Preserve the original screen before changing the camera
         if (client.currentScreen != null) {
             previousScreen = client.currentScreen;
@@ -35,11 +37,11 @@ public class ClientDreamcasting {
         }
 
         if (isDreamcasting) {
-            spectateRandomEntity(client);  // Start spectating a random entity
-            setThirdPersonPerspective(client);  // Force third-person perspective (F5)
+//            spectateRandomEntity(client);  // Start spectating a random entity
+//            setThirdPersonPerspective(client);  // Force third-person perspective (F5)
         } else {
-            stopSpectating(client);  // Stop spectating, return to normal view
-            resetFirstPersonPerspective(client);  // Reset back to first-person view
+//            stopSpectating(client);  // Stop spectating, return to normal view
+//            resetFirstPersonPerspective(client);  // Reset back to first-person view
         }
 
         // Make sure that leaving bed works correctly by checking if player is in bed
@@ -54,15 +56,36 @@ public class ClientDreamcasting {
         wasSleeping = false; // Reset flag after handling dreamcasting logic
     }
 
+    public static void requestEntityFromServer() {
+        // Create the payload with the entity ID
+        EntityRequestPayload payload = new EntityRequestPayload(1);
+
+        // Send the payload to the server
+        ClientPlayNetworking.send(payload);
+        System.out.println("Entity request sent.");
+    }
+
+
+
+
     // Method to make the client spectate a random entity
     private static void spectateRandomEntity(MinecraftClient client) {
         World world = client.world;
         if (world != null) {
             assert client.player != null;
-            List<Entity> entities = world.getEntitiesByClass(Entity.class, new Box(client.player.getPos().add(-500, -500, -500), client.player.getPos().add(500, 500, 500)), e -> e != client.player);
+            setThirdPersonPerspective(client);
+            // Increase the search radius to beyond the normal render distance
+            int range = 10000; // Increase this value to search a larger area
+            Box searchArea = new Box(client.player.getPos().add(-range, -range, -range), client.player.getPos().add(range, range, range));
+
+            // Get all entities within the larger search radius
+            List<Entity> entities = world.getEntitiesByClass(Entity.class, searchArea, e -> e != client.player);
+
+            // Filter entities to only include those with the name tag "test"
+            entities.removeIf(entity -> entity.getCustomName() == null || !entity.getCustomName().getString().equals("test"));
 
             if (!entities.isEmpty()) {
-                // Pick a random entity to spectate
+                // Pick a random entity with the name tag "test" to spectate
                 Random random = new Random();
                 Entity randomEntity = entities.get(random.nextInt(entities.size()));
 
@@ -72,9 +95,22 @@ public class ClientDreamcasting {
         }
     }
 
+    // Method to make the client spectate a random entity
+    public static void spectateEntity(MinecraftClient client, Entity entity) {
+        World world = client.world;
+        if (world != null) {
+            assert client.player != null;
+            setThirdPersonPerspective(client);
+            client.setCameraEntity(entity);
+
+        }
+    }
+
+
     // Method to stop spectating and return the camera to the player
     public static void stopSpectating(MinecraftClient client) {
         if (client.player != null) {
+            resetFirstPersonPerspective(client);
             // Send packet to stop sleeping (this wakes the player up)
             ClientPlayNetworkHandler clientPlayNetworkHandler = client.player.networkHandler;
             clientPlayNetworkHandler.sendPacket(new ClientCommandC2SPacket(client.player, ClientCommandC2SPacket.Mode.STOP_SLEEPING));

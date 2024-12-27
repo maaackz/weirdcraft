@@ -6,17 +6,20 @@
   "mixins": [
     "BedDestroyMonitorMixin",
     "BeeBehaviorMixin",
+    "ChunkDataSenderMixin",
     "ComposterPoopMixin",
     "DeathMixin",
     "ExampleMixin",
     "FallMixin",
     "HoldingSlabMixin",
-    "PapayaEatSoundMixin",
+    "HolyMackerelNoBucketMixin",
     "NocturnesKissMixin",
+    "PapayaEatSoundMixin",
     "PoopingMixin",
     "RaineLightningMixin",
     "SebHostileMixin",
-    "ServerMixin"
+    "ServerMixin",
+    "ServerWorldMixin"
   ],
   "client": [],
   "injectors": {

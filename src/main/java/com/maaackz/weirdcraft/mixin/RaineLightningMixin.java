@@ -50,6 +50,7 @@ public abstract class RaineLightningMixin {
         lightningEntity.setFireTicks(0);
         lightningEntity.setOnFire(false);
         lightningEntity.setOnFireFor(0);
+        lightningEntity.extinguish();
         lightningEntity.setPosition(newPos.getX(), newPos.getY(), newPos.getZ());
         world.spawnEntity(lightningEntity);
 

@@ -17,7 +17,9 @@
 		"ECrowParrotMixin",
 		"NearDeathMixin",
 		"TooltipMixin",
-		"DreamcastMixin"
+		"DreamcastMixin",
+		"ClientChunkMapMixin",
+		"HideCustomNameMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -1,32 +1,49 @@
 package com.maaackz.weirdcraft;
 
+import com.maaackz.weirdcraft.datagen.CustomEntities;
 import com.maaackz.weirdcraft.item.custom.PocketWatchItem;
+import com.maaackz.weirdcraft.item.custom.RainesCloudItem;
+import com.maaackz.weirdcraft.network.EntityResponsePayload;
 import com.maaackz.weirdcraft.network.SleepPayload;
 import com.maaackz.weirdcraft.network.TimePayload;
+import com.maaackz.weirdcraft.network.WeatherPayload;
+import com.maaackz.weirdcraft.renderer.HolyMackerelRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.ChunkStatus;
 import org.lwjgl.glfw.GLFW;
 
 public class WeirdcraftClient implements ClientModInitializer {
 
-	private static final KeyBinding advanceKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-			"key.weirdcraft.advance_time",
+	private static final KeyBinding specialOne = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+			"key.weirdcraft.special_one",
 			InputUtil.Type.KEYSYM,
 			GLFW.GLFW_KEY_Z, // Default key: Z
 			"category.weirdcraft.keys"
 	));
-	private static final KeyBinding reverseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-			"key.weirdcraft.reverse_time",
+	private static final KeyBinding specialTwo = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+			"key.weirdcraft.special_two",
 			InputUtil.Type.KEYSYM,
 			GLFW.GLFW_KEY_X, // Default key: X
+			"category.weirdcraft.keys"
+	));
+	private static final KeyBinding specialThree = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+			"key.weirdcraft.special_three",
+			InputUtil.Type.KEYSYM,
+			GLFW.GLFW_KEY_C, // Default key: X
 			"category.weirdcraft.keys"
 	));
 
@@ -43,7 +60,7 @@ public class WeirdcraftClient implements ClientModInitializer {
 			registerModMenuSound();
 		}
 
-
+		EntityRendererRegistry.register(CustomEntities.HOLY_MACKEREL, HolyMackerelRenderer::new);
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.world == null) return;
@@ -51,7 +68,7 @@ public class WeirdcraftClient implements ClientModInitializer {
 			boolean holdingPocketWatch = client.player.getMainHandStack().getItem() instanceof PocketWatchItem;
 
 			if (holdingPocketWatch) {
-				if (advanceKey.isPressed()) {
+				if (specialOne.isPressed()) {
 					if (!timeAdvancing) { // Start advancing
 						timeAdvancing = true;
 						timeReversing = false; // Stop reverse if active
@@ -64,7 +81,7 @@ public class WeirdcraftClient implements ClientModInitializer {
 					System.out.println("Stopped advancing time...");
 				}
 
-				if (reverseKey.isPressed()) {
+				if (specialTwo.isPressed()) {
 					if (!timeReversing) { // Start reversing
 						timeReversing = true;
 						timeAdvancing = false; // Stop advance if active
@@ -77,6 +94,27 @@ public class WeirdcraftClient implements ClientModInitializer {
 					System.out.println("Stopped reversing time...");
 				}
 			}
+
+
+			boolean holdingRainCloud = client.player.getMainHandStack().getItem() instanceof RainesCloudItem;
+			if (holdingRainCloud) {
+				if (specialOne.isPressed()) {
+					ClientPlayNetworking.send(new WeatherPayload(1));
+					System.out.println("Weather cleared.");
+
+				}
+				else if (specialTwo.isPressed()) {
+					ClientPlayNetworking.send(new WeatherPayload(2));
+					System.out.println("Rain.");
+
+				}
+				else if (specialThree.isPressed()) {
+					ClientPlayNetworking.send(new WeatherPayload(3));
+					System.out.println("Thunder.");
+
+				}
+			}
+
 		});
 // NOTE: PayloadTypeRegistry has 2 functions:
 //       - playS2C is for server -> client communication
@@ -93,10 +131,36 @@ public class WeirdcraftClient implements ClientModInitializer {
 				// Trigger Dreamcasting logic based on whether the player is sleeping
 				if (isSleeping) {
 					// Handle the start of the sleep (Dreamcasting)
-					ClientDreamcasting.dreamcast(context.client(), true);  // You may pass additional data as needed
+					DreamcastingClient.dreamcast(context.client(), true);  // You may pass additional data as needed
 				} else {
 					// Handle the stop of the sleep
-					ClientDreamcasting.dreamcast(context.client(), false);  // Similarly, handle stop logic
+					DreamcastingClient.dreamcast(context.client(), false);  // Similarly, handle stop logic
+				}
+			});
+		});
+
+		ClientPlayNetworking.registerGlobalReceiver(EntityResponsePayload.ID, (payload, context) -> {
+			context.client().execute(() -> {
+				System.out.println("Entity response received.");
+
+				// Ensure the chunk containing the entity is loaded
+				Entity requestedEntity = null;
+				World world = context.client().world;
+
+				// Try loading the chunk containing the entity
+				ChunkPos chunkPos = new ChunkPos(new BlockPos(payload.entityPos())); // assuming entityPos is a Vec3d
+                assert world != null;
+                world.getChunkManager().getChunk(chunkPos.x, chunkPos.z, ChunkStatus.FULL, true);
+
+				// Now try to get the entity by ID
+				requestedEntity = world.getEntityById(payload.entityId());
+
+				if (requestedEntity != null) {
+					// Optionally, do something with the entity, like spectating it
+					System.out.println("Received entity data: Name=" + payload.entityName() + ", Position=" + payload.entityPos() + ", ID=" + payload.entityId());
+					DreamcastingClient.spectateEntity(context.client(),requestedEntity);
+				} else {
+					System.out.println("Entity with ID " + payload.entityId() + " is not loaded.");
 				}
 			});
 		});

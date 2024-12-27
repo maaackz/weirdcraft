@@ -33,7 +33,7 @@ public class CustomLootTableProvider extends FabricBlockLootTableProvider {
 //        addDrop(CustomBlocks.MAGIC_BLOCK);
 
         addDrop(CustomBlocks.WEIRDIUM_ORE, oreDrops(CustomBlocks.WEIRDIUM_ORE, CustomItems.RAW_WEIRDIUM));
-        addDrop(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE, multipleOreDrops(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE, CustomItems.RAW_WEIRDIUM, 3, 7));
+        addDrop(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE, oreDrops(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE, CustomItems.RAW_WEIRDIUM));
 
 //        addDrop(CustomBlocks.PINK_GARNET_STAIRS);
 //        addDrop(CustomBlocks.PINK_GARNET_SLAB, slabDrops(CustomBlocks.PINK_GARNET_SLAB));

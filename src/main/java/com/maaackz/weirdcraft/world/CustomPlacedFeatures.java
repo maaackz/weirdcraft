@@ -26,7 +26,7 @@ public class CustomPlacedFeatures {
 
         register(context, WEIRDIUM_ORE_PLACED_KEY, configuredFeatures.getOrThrow(CustomConfiguredFeatures.WEIRDIUM_ORE_KEY),
                 CustomOrePlacement.modifiersWithCount(4,
-                        HeightRangePlacementModifier.trapezoid(YOffset.fixed(-69), YOffset.fixed(69))));
+                        HeightRangePlacementModifier.trapezoid(YOffset.fixed(-69), YOffset.fixed(45))));
 //        register(context, NETHER_PINK_GARNET_ORE_PLACED_KEY, configuredFeatures.getOrThrow(CustomConfiguredFeatures.NETHER_PINK_GARNET_ORE_KEY),
 //                CustomOrePlacement.modifiersWithCount(14,
 //                        HeightRangePlacementModifier.uniform(YOffset.fixed(-80), YOffset.fixed(80))));

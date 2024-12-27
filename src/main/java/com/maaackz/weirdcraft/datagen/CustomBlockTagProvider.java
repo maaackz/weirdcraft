@@ -22,6 +22,7 @@ public class CustomBlockTagProvider  extends FabricTagProvider.BlockTagProvider 
                 .add(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE);
 
         getOrCreateTagBuilder(BlockTags.NEEDS_IRON_TOOL)
+                .add(CustomBlocks.WEIRDIUM_ORE)
                 .add(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE);
 
 //        getOrCreateTagBuilder(CustomTags.Blocks.NEEDS_WEIRDIUM_TOOL)

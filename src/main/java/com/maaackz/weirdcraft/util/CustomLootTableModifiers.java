@@ -23,7 +23,7 @@ public class CustomLootTableModifiers {
             if (DESERT_TEMPLE_ID.equals(id)) {
                 LootPool pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(0.1f))
+                        .conditionally(RandomChanceLootCondition.builder(0.025f))
                         .with(ItemEntry.builder(CustomItems.SAND_OCEAN_MUSIC_DISC))
                         .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1.0f, 1.0f)).build())
                         .build();
