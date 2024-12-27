@@ -19,7 +19,8 @@
 		"TooltipMixin",
 		"DreamcastMixin",
 		"ClientChunkMapMixin",
-		"HideCustomNameMixin"
+		"HideCustomNameMixin",
+		"ViewModelMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
