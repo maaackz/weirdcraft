@@ -20,7 +20,8 @@
 		"DreamcastMixin",
 		"ClientChunkMapMixin",
 		"HideCustomNameMixin",
-		"ViewModelMixin"
+		"ViewModelMixin",
+		"CoinMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
