@@ -50,6 +50,4 @@ public abstract class HolyMackerelNoBucketMixin extends BucketItem {
         return TypedActionResult.fail(ItemStack.EMPTY);
     }
 
-//    public static
-
 }

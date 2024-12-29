@@ -73,7 +73,7 @@ public class CustomItems {
     public static final Item HOLY_MACKEREL = registerItem("holy_mackerel",
             new HolyMackerelItem(
                     CustomEntities.HOLY_MACKEREL,
-                    Fluids.WATER,
+                    Fluids.EMPTY,
                     SoundEvents.ITEM_BUCKET_EMPTY_FISH,
                     (new Item.Settings())
                     .maxCount(1)

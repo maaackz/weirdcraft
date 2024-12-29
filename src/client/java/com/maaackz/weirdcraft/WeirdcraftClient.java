@@ -3,10 +3,7 @@ package com.maaackz.weirdcraft;
 import com.maaackz.weirdcraft.datagen.CustomEntities;
 import com.maaackz.weirdcraft.item.custom.PocketWatchItem;
 import com.maaackz.weirdcraft.item.custom.RainesCloudItem;
-import com.maaackz.weirdcraft.network.EntityResponsePayload;
-import com.maaackz.weirdcraft.network.SleepPayload;
-import com.maaackz.weirdcraft.network.TimePayload;
-import com.maaackz.weirdcraft.network.WeatherPayload;
+import com.maaackz.weirdcraft.network.*;
 import com.maaackz.weirdcraft.renderer.HolyMackerelRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -164,7 +161,6 @@ public class WeirdcraftClient implements ClientModInitializer {
 				}
 			});
 		});
-
 
 		JesusGui.init();
 		HudRenderCallback.EVENT.register((DrawContext context, RenderTickCounter counter) -> {

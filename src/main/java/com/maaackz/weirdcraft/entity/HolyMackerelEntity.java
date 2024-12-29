@@ -1,7 +1,6 @@
     package com.maaackz.weirdcraft.entity;
 
     import com.maaackz.weirdcraft.item.CustomItems;
-    import net.minecraft.advancement.criterion.Criteria;
     import net.minecraft.block.BlockState;
     import net.minecraft.component.DataComponentTypes;
     import net.minecraft.component.type.NbtComponent;
@@ -23,7 +22,7 @@
     import net.minecraft.item.ItemStack;
     import net.minecraft.nbt.NbtCompound;
     import net.minecraft.registry.tag.FluidTags;
-    import net.minecraft.server.network.ServerPlayerEntity;
+    import net.minecraft.server.world.ServerWorld;
     import net.minecraft.sound.SoundEvent;
     import net.minecraft.sound.SoundEvents;
     import net.minecraft.util.ActionResult;
@@ -88,36 +87,48 @@
             super.tickMovement();
         }
 
-        @Override
-        protected ActionResult interactMob(PlayerEntity player, Hand hand) {
-            ItemStack itemStack = player.getStackInHand(hand);
-            if (this.isAlive()) {
-                // Play the sound when the entity is "picked up"
-                this.playSound(((Bucketable) this).getBucketFillSound(), 1.0F, 1.0F);
-
+//        @Override
+        public ActionResult interactMob(PlayerEntity player, Hand hand) {
+////            if (!this.isAlive()) {
+////                return super.interactMob(player, hand);
+////            }
+//
+////            if (world.isClient) {
+//                // Only play the sound on the client side
+////                this.playSound(((Bucketable) this).getBucketFillSound(), 1.0F, 1.0F);
+////                return ActionResult.success(true);
+////            }
+//
+//            // Server-side logic
+            if (this.getWorld() instanceof ServerWorld sw) {
                 // Create the custom item stack for the fish without involving a bucket
                 ItemStack fishItemStack = ((Bucketable) this).getBucketItem();
                 ((Bucketable) this).copyDataToStack(fishItemStack);
 
-                // Add the item directly to the player's inventory
-                if (!player.getInventory().insertStack(fishItemStack)) {
+//                 Add the item directly to the player's inventory
+//                player.getInventory().insertStack(2,fishItemStack);
+//                serverPlayer.giveItemStack(fishItemStack);
+
+                boolean addedToInventory = player.getInventory().insertStack(fishItemStack);
+                if (!addedToInventory) {
                     // If the inventory is full, drop the item into the world
                     this.dropStack(fishItemStack);
                 }
 
-                // Trigger the criteria if on the server
-                World world = this.getWorld();
-                if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
-                    Criteria.FILLED_BUCKET.trigger(serverPlayer, fishItemStack);
-                }
+                // Trigger the criteria for advancements
+//                Criteria.FILLED_BUCKET.trigger(player, fishItemStack);
 
                 // Remove the entity from the world
                 this.discard();
-                return ActionResult.success(world.isClient);
+                return ActionResult.SUCCESS;
             }
-
-            return super.interactMob(player, hand);
+//
+////            return super.interactMob(player, hand);
+            return ActionResult.FAIL;
+//            return (ActionResult)Bucketable.tryBucket(player, hand, this).orElse(super.interactMob(player, hand));
         }
+
+
 
         @Override
         protected void tickWaterBreathingAir(int air) {

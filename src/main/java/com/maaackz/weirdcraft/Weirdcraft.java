@@ -3,6 +3,7 @@ package com.maaackz.weirdcraft;
 import com.maaackz.weirdcraft.block.CustomBlocks;
 import com.maaackz.weirdcraft.datagen.CustomEntities;
 import com.maaackz.weirdcraft.datagen.CustomEntityAttributes;
+import com.maaackz.weirdcraft.entity.HolyMackerelEntity;
 import com.maaackz.weirdcraft.item.CustomItemGroups;
 import com.maaackz.weirdcraft.item.CustomItems;
 import com.maaackz.weirdcraft.item.custom.DreamcastHelmetItem;
@@ -16,6 +17,7 @@ import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -48,12 +50,27 @@ public class Weirdcraft implements ModInitializer {
 		CustomLootTableModifiers.modifyLootTables();
 
 		CustomWorldGeneration.generateModWorldGen();
+		FabricDefaultAttributeRegistry.register(CustomEntities.HOLY_MACKEREL, HolyMackerelEntity.createAttributes());
 
 		// Register the TimePayload codec
 		PayloadTypeRegistry.playC2S().register(TimePayload.ID, TimePayload.CODEC);
 
 		final Map<ServerPlayerEntity, Boolean> activePlayers = new ConcurrentHashMap<>();
 		final Map<ServerPlayerEntity, Boolean> lastActionMap = new ConcurrentHashMap<>();
+
+//		UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+//			if (!world.isClient && entity instanceof HolyMackerelEntity) {
+//				System.out.println("Holy Mackerel right clicked");
+//				ItemStack fishItemStack = new ItemStack(CustomItems.HOLY_MACKEREL);
+//				fishItemStack.set(DataComponentTypes.CUSTOM_NAME, Text.of("Rei"));
+//				player.getInventory().insertStack(fishItemStack);
+//				player.giveItemStack(fishItemStack);
+//				ServerPlayNetworking.send((ServerPlayerEntity) player,new RequestMackerelPayload(true));
+//				return ActionResult.SUCCESS;
+//			}
+
+//			return ActionResult.PASS;
+//		});
 
 		ServerPlayNetworking.registerGlobalReceiver(TimePayload.ID, (payload, context) -> {
 			context.server().execute(() -> {
@@ -143,11 +160,13 @@ public class Weirdcraft implements ModInitializer {
 
 				if (payload.weather() == 1) {
 					// Clear weather
+
 					player.getServerWorld().resetWeather();
 				} else if (payload.weather() == 2) {
 					// Set rain with a random duration (12,000 to 18,000 ticks)
 					int rainDuration = ThreadLocalRandom.current().nextInt(12000, 18001);
 					player.getServerWorld().setWeather(0, rainDuration, true, false);
+
 				} else if (payload.weather() == 3) {
 					// Set thunderstorm with a random duration (3,000 to 9,000 ticks)
 					int thunderDuration = ThreadLocalRandom.current().nextInt(3000, 9001);
@@ -156,6 +175,21 @@ public class Weirdcraft implements ModInitializer {
 			});
 		});
 
+//		PayloadTypeRegistry.playC2S().register(RequestMackerelPayload.ID, RequestMackerelPayload.CODEC);
+//		ServerPlayNetworking.registerGlobalReceiver(RequestMackerelPayload.ID, (payload, context) -> {
+
+//			context.server().execute(() -> {
+//				ServerPlayerEntity player = context.server().getPlayerManager().getPlayerList().getFirst();
+//				ItemStack fishItemStack = new ItemStack(CustomItems.HOLY_MACKEREL);
+//				fishItemStack.set(DataComponentTypes.CUSTOM_NAME, Text.of("Rei"));
+//				player.getInventory().insertStack(fishItemStack);
+//				player.giveItemStack(fishItemStack);
+//				ServerPlayNetworking.send(player,new RequestMackerelPayload(true));
+//			});
+//
+//		});
+
+
 		// Check if EMI is loaded and register exclusions
 		if (FabricLoader.getInstance().isModLoaded("emi")) {
 			// EMI-specific logic here
@@ -163,5 +197,13 @@ public class Weirdcraft implements ModInitializer {
 
 		LOGGER.info("weirdcraft mod initialized!");
 	}
+//
+//	public void giveMackerel(ServerPlayerEntity player) {
+//		ServerPlayerEntity player = context.player();
+////				ItemStack fishItemStack = new ItemStack(CustomItems.HOLY_MACKEREL);
+////				fishItemStack.set(DataComponentTypes.CUSTOM_NAME, Text.of("Rei"));
+////				player.getInventory().insertStack(fishItemStack);
+////				ServerPlayNetworking.send(player,new RequestMackerelPayload(true));
+//	}
 
 }

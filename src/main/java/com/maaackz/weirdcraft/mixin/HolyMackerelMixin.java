@@ -6,10 +6,8 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -44,8 +42,8 @@ public abstract class HolyMackerelMixin {
 
         // Custom logic for Holy Mackerel item
         if (isWieldingHolyMackerel(player)) {
-            player.sendMessage(Text.literal("§bYou feel the power of the Holy Mackerel!"), false);
-
+//            player.sendMessage(Text.literal("§bYou feel the power of the Holy Mackerel!"), false);
+//            player.setAir(-1);
         }
     }
 
@@ -204,15 +202,4 @@ public abstract class HolyMackerelMixin {
         return player.getInventory().contains(new ItemStack(holyMackerelItem));
     }
 
-    @Inject(method = "writeCustomDataToNbt", at = @At("HEAD"))
-    private void onWriteNbt(NbtCompound nbt, CallbackInfo ci) {
-        nbt.putBoolean("RainBuffActive", isRainBuffActive);
-        nbt.putBoolean("WaterBuffActive", isWaterBuffActive);
-    }
-
-    @Inject(method = "readCustomDataFromNbt", at = @At("HEAD"))
-    private void onReadNbt(NbtCompound nbt, CallbackInfo ci) {
-        isRainBuffActive = nbt.getBoolean("RainBuffActive");
-        isWaterBuffActive = nbt.getBoolean("WaterBuffActive");
-    }
 }
