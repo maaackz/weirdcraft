@@ -26,6 +26,7 @@ public abstract class HolyMackerelWaterBreathingMixin extends Entity {
             // Check if the player has the Holy Mackerel item in their inventory
             System.out.println("Checking water breathing...");
             boolean hasHolyMackerel = serverPlayer.getInventory().main.stream()
+                    .anyMatch(stack -> stack.getItem() == CustomItems.HOLY_MACKEREL) || serverPlayer.getInventory().offHand.stream()
                     .anyMatch(stack -> stack.getItem() == CustomItems.HOLY_MACKEREL);
 
             if (hasHolyMackerel) {

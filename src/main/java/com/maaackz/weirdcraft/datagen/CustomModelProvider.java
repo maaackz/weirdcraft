@@ -21,6 +21,7 @@ public class CustomModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.WEIRDIUM_ORE);
         blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.RAW_WEIRDIUM_BLOCK);
         blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.DEEPSLATE_WEIRDIUM_ORE);
+        blockStateModelGenerator.registerSimpleCubeAll(CustomBlocks.POOP_BLOCK);
     }
 
     @Override
@@ -51,6 +52,17 @@ public class CustomModelProvider extends FabricModelProvider {
         itemModelGenerator.register(CustomItems.WEIRDIUM_HOE, Models.GENERATED);
         itemModelGenerator.register(CustomItems.WEIRDIUM_PICKAXE, Models.GENERATED);
         itemModelGenerator.register(CustomItems.WEIRDIUM_SHOVEL, Models.GENERATED);
+
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.POOP_HELMET));
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.POOP_CHESTPLATE));
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.POOP_LEGGINGS));
+        itemModelGenerator.registerArmor(((ArmorItem) CustomItems.POOP_BOOTS));
+
+        itemModelGenerator.register(CustomItems.POOP_SWORD, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.POOP_AXE, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.POOP_HOE, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.POOP_PICKAXE, Models.GENERATED);
+        itemModelGenerator.register(CustomItems.POOP_SHOVEL, Models.GENERATED);
 
         itemModelGenerator.register(CustomItems.POCKET_WATCH, Models.GENERATED);
         itemModelGenerator.register(CustomItems.RAINES_CLOUD, Models.GENERATED);

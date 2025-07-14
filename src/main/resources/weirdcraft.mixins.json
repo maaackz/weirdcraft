@@ -12,19 +12,20 @@
     "ExampleMixin",
     "FallMixin",
     "HoldingSlabMixin",
-    "HolyMackerelWaterBreathingMixin",
     "HolyMackerelMixin",
     "HolyMackerelNoBucketMixin",
+    "HolyMackerelWaterBreathingMixin",
     "NocturnesKissMixin",
     "PapayaEatSoundMixin",
     "PoopingMixin",
     "RaineLightningMixin",
+    "RainesCloudMixin",
     "SebHostileMixin",
     "ServerMixin",
     "ServerWorldMixin"
   ],
   "client": [],
-  "server": ["HolyMackerelEntityMixin"],
+  "server": [],
   "injectors": {
     "defaultRequire": 1
 	}

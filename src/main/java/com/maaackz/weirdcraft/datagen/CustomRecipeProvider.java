@@ -137,5 +137,91 @@ public class CustomRecipeProvider extends FabricRecipeProvider {
                 .input('S', Items.STICK)
                 .criterion(hasItem(CustomItems.WEIRDIUM_INGOT), conditionsFromItem(CustomItems.WEIRDIUM_INGOT))
                 .offerTo(exporter);
+
+
+        // Poop Armor Recipes
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.POOP_HELMET)
+                .pattern("III")
+                .pattern("I I")
+                .input('I', CustomItems.POOP)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.POOP_CHESTPLATE)
+                .pattern("I I")
+                .pattern("III")
+                .pattern("III")
+                .input('I', CustomItems.POOP)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.POOP_LEGGINGS)
+                .pattern("III")
+                .pattern("I I")
+                .pattern("I I")
+                .input('I', CustomItems.POOP)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, CustomItems.POOP_BOOTS)
+                .pattern("I I")
+                .pattern("I I")
+                .input('I', CustomItems.POOP)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        // Weirdium Tool Recipes
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.POOP_SWORD)
+                .pattern(" I ")
+                .pattern(" I ")
+                .pattern(" S ")
+                .input('I', CustomItems.POOP)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.POOP_PICKAXE)
+                .pattern("III")
+                .pattern(" S ")
+                .pattern(" S ")
+                .input('I', CustomItems.POOP)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.POOP_AXE)
+                .pattern("II ")
+                .pattern("IS ")
+                .pattern(" S ")
+                .input('I', CustomItems.POOP)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.POOP_SHOVEL)
+                .pattern(" I ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .input('I', CustomItems.POOP)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, CustomItems.POOP_HOE)
+                .pattern("II ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .input('I', CustomItems.POOP)
+                .input('S', Items.STICK)
+                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+                .offerTo(exporter);
+
+//        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, CustomBlocks.POOP_BLOCK, 9)
+//                .input(CustomItems.POOP)
+//                .criterion(hasItem(CustomItems.POOP), conditionsFromItem(CustomItems.POOP))
+//                .offerTo(exporter);
+
+        offerReversibleCompactingRecipes(exporter, RecipeCategory.BUILDING_BLOCKS, CustomItems.POOP, RecipeCategory.MISC, CustomBlocks.POOP_BLOCK);
+
     }
 }

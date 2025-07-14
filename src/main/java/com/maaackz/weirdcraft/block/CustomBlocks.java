@@ -30,6 +30,15 @@ public class CustomBlocks {
 //                    .sounds(BlockSoundGroup.AMETHYST_BLOCK))
     ));
 
+    public static final Block POOP_BLOCK = registerBlock("poop_block",
+            new Block(AbstractBlock.Settings.create().strength(0f)
+//                    .requiresTool()
+//                    .luminance(state -> 10)
+                    .sounds(BlockSoundGroup.FUNGUS)
+            )
+    );
+
+
     public static final Block WEIRDIUM_ORE = registerBlock("weirdium_ore",
             new ExperienceDroppingBlock(UniformIntProvider.create(2, 5),
                 AbstractBlock.Settings.create().strength(3f)

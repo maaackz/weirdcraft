@@ -47,7 +47,7 @@ public abstract class ComposterPoopMixin extends Block {
                     // Roll the dice to determine if we spawn the item
                     if (world.random.nextFloat() < chanceToSpawn) {
                         Vec3d vec3d = Vec3d.add(pos, 0.5, 1.01, 0.5).addRandom(world.random, 0.7F);
-                        ItemEntity itemEntity = new ItemEntity(world, vec3d.getX(), vec3d.getY(), vec3d.getZ(), new ItemStack(CustomItems.SAND_OCEAN_MUSIC_DISC));
+                        ItemEntity itemEntity = new ItemEntity(world, vec3d.getX(), vec3d.getY(), vec3d.getZ(), new ItemStack(CustomItems.POOP));
                         itemEntity.setToDefaultPickupDelay();
                         world.spawnEntity(itemEntity);
                     }

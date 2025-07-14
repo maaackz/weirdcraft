@@ -26,6 +26,10 @@ public abstract class ViewModelMixin {
 //                matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(VMScreen.CONFIG.instance().rotMainX));
 //                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(VMScreen.CONFIG.instance().rotMainY));
 //                matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(VMScreen.CONFIG.instance().rotMainZ));
+                matrices.translate(0.23F, 0.0F, 0.0F); // y-0.07
+                matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(15.0F)); // + 5.2
+                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-140.0F));
+                matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(0.0F)); // +9.92
             } else {
                 matrices.translate(0.15F, -0.07F, 0.0F); // y-0.07
 //                matrices.scale(VMScreen.CONFIG.instance().scale, VMScreen.CONFIG.instance().scale, VMScreen.CONFIG.instance().scale);

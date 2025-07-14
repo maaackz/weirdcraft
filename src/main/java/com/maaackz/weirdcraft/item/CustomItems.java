@@ -139,6 +139,53 @@ public class CustomItems {
                     .attributeModifiers(HoeItem.createAttributeModifiers(WeirdiumToolMaterial.INSTANCE,1,0.1f)))
     );
 
+    // Armor pieces
+    public static final Item POOP_HELMET = registerItem("poop_helmet",
+            new ArmorItem(CustomArmorMaterials.POOP_ARMOR_MATERIAL, ArmorItem.Type.HELMET,
+                    new Item.Settings().maxCount(1))
+    );
+
+    public static final Item POOP_CHESTPLATE = registerItem("poop_chestplate",
+            new ArmorItem(CustomArmorMaterials.POOP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE,
+                    new Item.Settings().maxCount(1))
+    );
+
+    public static final Item POOP_LEGGINGS = registerItem("poop_leggings",
+            new ArmorItem(CustomArmorMaterials.POOP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS,
+                    new Item.Settings().maxCount(1))
+    );
+
+    public static final Item POOP_BOOTS = registerItem("poop_boots",
+            new ArmorItem(CustomArmorMaterials.POOP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS,
+                    new Item.Settings().maxCount(1))
+    );
+
+    // Tools
+    public static final Item POOP_SWORD = registerItem("poop_sword",
+            new SwordItem(PoopToolMaterial.INSTANCE, new Item.Settings()
+                    .attributeModifiers(SwordItem.createAttributeModifiers(PoopToolMaterial.INSTANCE,1,-2.5f)))
+    );
+
+    public static final Item POOP_PICKAXE = registerItem("poop_pickaxe",
+            new PickaxeItem(PoopToolMaterial.INSTANCE, new Item.Settings()
+                    .attributeModifiers(PickaxeItem.createAttributeModifiers(PoopToolMaterial.INSTANCE,0,-2.9f)))
+    );
+
+    public static final Item POOP_AXE = registerItem("poop_axe",
+            new AxeItem(PoopToolMaterial.INSTANCE, new Item.Settings()
+                    .attributeModifiers(AxeItem.createAttributeModifiers(PoopToolMaterial.INSTANCE,2,-3.1f)))
+    );
+
+    public static final Item POOP_SHOVEL = registerItem("poop_shovel",
+            new ShovelItem(PoopToolMaterial.INSTANCE, new Item.Settings()
+                    .attributeModifiers(ShovelItem.createAttributeModifiers(PoopToolMaterial.INSTANCE,0,-3.1f)))
+    );
+
+    public static final Item POOP_HOE = registerItem("poop_hoe",
+            new HoeItem(PoopToolMaterial.INSTANCE, new Item.Settings()
+                    .attributeModifiers(HoeItem.createAttributeModifiers(PoopToolMaterial.INSTANCE,0,-0.1f)))
+    );
+
 
 //    public static final Item SHOCK_COLLAR = registerItem("shock_collar",
 //            new ShockCollarItem(

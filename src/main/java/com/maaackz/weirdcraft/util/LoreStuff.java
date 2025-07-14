@@ -23,4 +23,16 @@ public class LoreStuff {
 
     });
 
+    public void sendMessageToPlayer() {
+
+    }
+
+    public void sendMessageToAllPlayers() {
+
+    }
+
+    public void sendMessageToNearbyPlayers() {
+
+    }
+
 }

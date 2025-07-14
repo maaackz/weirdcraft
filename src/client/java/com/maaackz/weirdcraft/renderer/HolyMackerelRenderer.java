@@ -3,8 +3,9 @@ package com.maaackz.weirdcraft.renderer;
 
 import com.maaackz.weirdcraft.Weirdcraft;
 import com.maaackz.weirdcraft.entity.HolyMackerelEntity;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.MobEntityRenderer;
+import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.render.entity.model.SalmonEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
@@ -12,11 +13,22 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 
-public class HolyMackerelRenderer extends MobEntityRenderer<HolyMackerelEntity, SalmonEntityModel<HolyMackerelEntity>> {
+public class HolyMackerelRenderer extends LivingEntityRenderer<HolyMackerelEntity, SalmonEntityModel<HolyMackerelEntity>> {
     private static final Identifier TEXTURE = Identifier.of(Weirdcraft.MOD_ID, "textures/entity/fish/holy_mackerel.png");
 
     public HolyMackerelRenderer(EntityRendererFactory.Context context) {
         super(context, new SalmonEntityModel<>(context.getPart(EntityModelLayers.SALMON)), 0.4F);
+    }
+
+    @Override
+    public void render(HolyMackerelEntity entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+        // Render the main texture
+        super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
+
+        // Apply spectral arrow outline
+        if (entity.isGlowing()) {
+            entity.setGlowing(true); // Ensure the entity has the glowing effect
+        }
     }
 
     @Override
