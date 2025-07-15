@@ -15,7 +15,18 @@ public class RainbowWeirdiumOreMixin {
     private static float hue = 0.0f; // Initialize hue
 
     @Inject(at = @At("HEAD"), method = "render")
-    private void renderRainbowEffect(MatrixStack matrices, VertexConsumerProvider vertexConsumers, Random random, CallbackInfo ci) {
+    private void renderRainbowEffect(
+            net.minecraft.world.BlockRenderView blockRenderView,
+            net.minecraft.client.render.model.BakedModel bakedModel,
+            net.minecraft.block.BlockState blockState,
+            net.minecraft.util.math.BlockPos blockPos,
+            MatrixStack matrices,
+            net.minecraft.client.render.VertexConsumer vertexConsumer,
+            boolean cull,
+            Random random,
+            long seed,
+            int overlay,
+            CallbackInfo ci) {
         hue += 0.01f; // Increment the hue
         if (hue > 1.0f) {
             hue = 0.0f; // Loop back to the start

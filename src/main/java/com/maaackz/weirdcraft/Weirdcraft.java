@@ -13,6 +13,7 @@ import com.maaackz.weirdcraft.sound.CustomSounds;
 import com.maaackz.weirdcraft.util.CustomLootTableModifiers;
 import com.maaackz.weirdcraft.world.gen.CustomWorldGeneration;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -20,8 +21,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +49,7 @@ public class Weirdcraft implements ModInitializer {
 		CustomSounds.registerSounds();
 		CustomEntities.registerEntities();
 		CustomEntityAttributes.registerAttributes();
+//		CustomOreGeneration.generateOres();
 
 		CustomLootTableModifiers.modifyLootTables();
 
@@ -194,6 +198,39 @@ public class Weirdcraft implements ModInitializer {
 		if (FabricLoader.getInstance().isModLoaded("emi")) {
 			// EMI-specific logic here
 		}
+
+		// Register debug commands for chunk loading and dreamcasting
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			dispatcher.register(net.minecraft.server.command.CommandManager.literal("testchunk")
+				.requires(source -> source.hasPermissionLevel(2))
+				.executes(context -> {
+					ServerCommandSource source = context.getSource();
+					if (source.getPlayer() != null) {
+						// Test chunk loading at player's position
+						DreamcastingServer.debugChunkLoading(source.getPlayer(), source.getPlayer().getBlockPos());
+						source.sendMessage(Text.literal("Chunk loading test completed. Check server logs."));
+					} else {
+						source.sendMessage(Text.literal("This command can only be used by players."));
+					}
+					return 1;
+				})
+			);
+			
+			dispatcher.register(net.minecraft.server.command.CommandManager.literal("dreamcast")
+				.requires(source -> source.hasPermissionLevel(2))
+				.executes(context -> {
+					ServerCommandSource source = context.getSource();
+					if (source.getPlayer() != null) {
+						// Trigger dreamcasting for the player
+						DreamcastingServer.handleEntityRequest(source.getPlayer());
+						source.sendMessage(Text.literal("Dreamcasting triggered. Check server logs."));
+					} else {
+						source.sendMessage(Text.literal("This command can only be used by players."));
+					}
+					return 1;
+				})
+			);
+		});
 
 		LOGGER.info("weirdcraft mod initialized!");
 	}
