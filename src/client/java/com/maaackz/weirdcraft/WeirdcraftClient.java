@@ -55,6 +55,8 @@ public class WeirdcraftClient implements ClientModInitializer {
     // Store the current dreamcasted entity for updates and camera
     private static Entity dreamcastedEntity = null;
 
+	private KeyBinding manualChunkClearKey;
+
 
 	@Override
 	public void onInitializeClient() {
@@ -132,7 +134,7 @@ public class WeirdcraftClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(SleepPayload.ID, (payload, context) -> {
 			context.client().execute(() -> {
 				boolean isSleeping = payload.bool();
-
+				System.out.println("[DEBUG] SleepPayload received, isSleeping=" + isSleeping);
 				// Trigger Dreamcasting logic based on whether the player is sleeping
 				if (isSleeping) {
 					// Handle the start of the sleep (Dreamcasting)
@@ -176,6 +178,11 @@ public class WeirdcraftClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(DreamcastEntitySyncPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
+                System.out.println("[DEBUG] Entity sync packet received, isDreamcasting=" + DreamcastingClient.isDreamcasting());
+                if (!DreamcastingClient.isDreamcasting()) {
+                    System.out.println("[DEBUG] Ignoring entity sync packet because not dreamcasting.");
+                    return;
+                }
                 MinecraftClient client = context.client();
                 if (client.world == null) return;
 
@@ -209,9 +216,22 @@ public class WeirdcraftClient implements ClientModInitializer {
                 // Set camera to spectate this entity only if not already
                 if (client.cameraEntity != dreamcastedEntity) {
                     DreamcastingClient.spectateEntity(client, dreamcastedEntity);
-                }
-            });
-        });
+				}
+			});
+		});
+
+		manualChunkClearKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+			"key.weirdcraft.manual_chunk_clear",
+			InputUtil.Type.KEYSYM,
+			GLFW.GLFW_KEY_F9,
+			"category.weirdcraft"
+		));
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (manualChunkClearKey.wasPressed()) {
+				System.out.println("[Dreamcasting] F9 pressed: manual chunk clear/reload test");
+				com.maaackz.weirdcraft.DreamcastingClient.manualChunkClearTest();
+			}
+		});
 
 		JesusGui.init();
 		HudRenderCallback.EVENT.register((DrawContext context, RenderTickCounter counter) -> {
@@ -231,6 +251,8 @@ public class WeirdcraftClient implements ClientModInitializer {
 			if (DreamcastingClient.isDreamcasting()) {
 				DreamcastingClient.forceCameraLock(client);
 			}
+			// Failsafe: forcibly return camera to player if needed
+			DreamcastingClient.clientTickFailsafe(client);
 		});
 
 		// Register client-side debug commands
@@ -238,11 +260,22 @@ public class WeirdcraftClient implements ClientModInitializer {
 			dispatcher.register(net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal("dreamcastdebug")
 				.executes(context -> {
 					DreamcastingChunkManager.debugChunks();
-					// For client commands, we just print to console since there's no chat to send to
 					System.out.println("Dreamcasting debug info printed to console.");
 					return 1;
 				})
 			);
+            dispatcher.register(net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal("chunkfields")
+                .executes(context -> {
+                    System.out.println("--- ClientChunkManager fields ---");
+                    java.lang.reflect.Field[] fields = net.minecraft.client.world.ClientChunkManager.class.getDeclaredFields();
+                    for (java.lang.reflect.Field f : fields) {
+                        f.setAccessible(true);
+                        System.out.println("Field: " + f.getName() + " Type: " + f.getType().getName());
+                    }
+                    System.out.println("--- END ---");
+                    return 1;
+                })
+            );
 		});
 
 	}

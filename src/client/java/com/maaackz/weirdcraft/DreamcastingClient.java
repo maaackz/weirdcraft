@@ -25,12 +25,18 @@ import java.util.Random;
 public class DreamcastingClient {
 
     private static boolean isDreamcasting = false; // Track if the client is in dreamcasting mode
+    private static long lastDreamcastEndTime = 0; // Track when dreamcasting ended
     private static Screen previousScreen = null; // Store the previous screen before switching
     private static boolean wasSleeping = false; // Track if the player was sleeping before entering dreamcasting mode
 
     // Method to toggle Dreamcasting mode and spectate a random entity
     public static void dreamcast(MinecraftClient client, boolean enable) {
+        System.out.println("[Dreamcasting] dreamcast called with enable=" + enable);
         isDreamcasting = enable;
+        System.out.println("[DEBUG] dreamcast() called with enable=" + enable);
+        if (!enable) {
+            lastDreamcastEndTime = System.currentTimeMillis();
+        }
         
         // Activate/deactivate the dreamcasting chunk manager
         DreamcastingChunkManager.setActive(enable);
@@ -66,71 +72,192 @@ public class DreamcastingClient {
     
     // Method to clean up dreamcasting state
     private static void cleanupDreamcasting(MinecraftClient client) {
-        // Return camera to player if it's not already
-        if (client.cameraEntity != client.player && client.player != null) {
-            client.setCameraEntity(client.player);
-        }
-        
-        // Reset perspective
-        resetFirstPersonPerspective(client);
-        
-        // Force the client to stop waiting for chunks by clearing any pending requests
-        if (client.world != null && client.world.getChunkManager() instanceof ClientChunkManager) {
-            ClientChunkManager chunkManager = (ClientChunkManager) client.world.getChunkManager();
-            // Force a chunk manager update to clear any pending operations
-            try {
-                // This will force the chunk manager to process any pending operations
-                chunkManager.tick(() -> true, true);
-                
-                // Force multiple ticks to ensure all pending operations are processed
-                for (int i = 0; i < 5; i++) {
+        client.execute(() -> {
+            System.out.println("[Dreamcasting] cleanupDreamcasting called");
+            // Return camera to player if it's not already
+            if (client.cameraEntity != client.player && client.player != null) {
+                client.setCameraEntity(client.player);
+            }
+
+            // Reset perspective
+            resetFirstPersonPerspective(client);
+
+            // Force the client to stop waiting for chunks by clearing any pending requests
+            if (client.world != null && client.world.getChunkManager() instanceof ClientChunkManager) {
+                ClientChunkManager chunkManager = (ClientChunkManager) client.world.getChunkManager();
+                // Force a chunk manager update to clear any pending operations
+                try {
+                    // This will force the chunk manager to process any pending operations
                     chunkManager.tick(() -> true, true);
+
+                    // Force multiple ticks to ensure all pending operations are processed
+                    for (int i = 0; i < 5; i++) {
+                        chunkManager.tick(() -> true, true);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error during chunk manager cleanup: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.out.println("Error during chunk manager cleanup: " + e.getMessage());
             }
-        }
-        
-        // Clear any custom camera entities that might still be in the world
-        if (client.world != null) {
-            client.world.getEntitiesByClass(CustomSpectateCamera.class, 
-                new Box(client.player.getPos().add(-1000, -1000, -1000), 
-                       client.player.getPos().add(1000, 1000, 1000)), 
-                entity -> true).forEach(Entity::discard);
-        }
-        
-        // Force a world tick to process any remaining operations
-        if (client.world != null) {
-            try {
-                client.world.tick(() -> true);
-            } catch (Exception e) {
-                System.out.println("Error during world tick cleanup: " + e.getMessage());
+
+            // Clear any custom camera entities that might still be in the world
+            if (client.world != null) {
+                client.world.getEntitiesByClass(CustomSpectateCamera.class,
+                        new Box(client.player.getPos().add(-1000, -1000, -1000),
+                                client.player.getPos().add(1000, 1000, 1000)),
+                        entity -> true).forEach(Entity::discard);
             }
-        }
-        
-        // Force cleanup of the chunk manager
-        DreamcastingChunkManager.forceCleanup();
-        
-        // Force the client to stop waiting for chunks by clearing any pending chunk requests
-        // This should help with the "Waiting for chunk..." message in F3
-        if (client.world != null) {
-            try {
-                // Force the client to process any remaining chunk operations
-                client.world.getChunkManager().tick(() -> true, true);
-                
-                // Clear any pending chunk loading requests
-                for (int x = -32; x <= 32; x++) {
-                    for (int z = -32; z <= 32; z++) {
-                        // Force the client to stop waiting for chunks in a large area
-                        client.world.getChunkManager().getChunk(x, z, ChunkStatus.EMPTY, false);
+
+            // Force a world tick to process any remaining operations
+            if (client.world != null) {
+                try {
+                    client.world.tick(() -> true);
+                } catch (Exception e) {
+                    System.out.println("Error during world tick cleanup: " + e.getMessage());
+                }
+            }
+
+            // Force cleanup of the chunk manager
+            DreamcastingChunkManager.forceCleanup();
+
+            // --- Clear all loaded client chunks and force a renderer reload ---
+            if (client.world != null && client.world.getChunkManager() != null) {
+                Object chunkManager = client.world.getChunkManager();
+                try {
+                    // Access the 'chunks' field (ClientChunkMap)
+                    java.lang.reflect.Field chunksField = chunkManager.getClass().getDeclaredField("chunks");
+                    chunksField.setAccessible(true);
+                    Object chunkMap = chunksField.get(chunkManager);
+
+                    System.out.println("[Dreamcasting] About to print all ClientChunkMap fields");
+                    for (java.lang.reflect.Field field : chunkMap.getClass().getDeclaredFields()) {
+                        System.out.println("[Dreamcasting] ClientChunkMap field: " + field.getName() + " type: " + field.getType().getName());
+                    }
+                    System.out.println("[Dreamcasting] About to print all ClientChunkManager fields");
+                    for (java.lang.reflect.Field field : chunkManager.getClass().getDeclaredFields()) {
+                        System.out.println("[Dreamcasting] ClientChunkManager field: " + field.getName() + " type: " + field.getType().getName());
+                    }
+
+                    // --- Aggressively clear all Map, Set, and List fields in ClientChunkMap ---
+                    System.out.println("[Dreamcasting] Clearing all Map/Set/List fields in ClientChunkMap");
+                    for (java.lang.reflect.Field field : chunkMap.getClass().getDeclaredFields()) {
+                        field.setAccessible(true);
+                        Object value = field.get(chunkMap);
+                        if (value instanceof java.util.Map) {
+                            ((java.util.Map<?, ?>) value).clear();
+                            System.out.println("[Dreamcasting] Cleared Map field in ClientChunkMap: " + field.getName());
+                        } else if (value instanceof java.util.Set) {
+                            ((java.util.Set<?>) value).clear();
+                            System.out.println("[Dreamcasting] Cleared Set field in ClientChunkMap: " + field.getName());
+                        } else if (value instanceof java.util.List) {
+                            ((java.util.List<?>) value).clear();
+                            System.out.println("[Dreamcasting] Cleared List field in ClientChunkMap: " + field.getName());
+                        }
+                    }
+
+                    // --- Aggressively clear all Map, Set, and List fields in ClientChunkManager ---
+                    System.out.println("[Dreamcasting] Clearing all Map/Set/List fields in ClientChunkManager");
+                    for (java.lang.reflect.Field field : chunkManager.getClass().getDeclaredFields()) {
+                        field.setAccessible(true);
+                        Object value = field.get(chunkManager);
+                        if (value instanceof java.util.Map) {
+                            ((java.util.Map<?, ?>) value).clear();
+                            System.out.println("[Dreamcasting] Cleared Map field in ClientChunkManager: " + field.getName());
+                        } else if (value instanceof java.util.Set) {
+                            ((java.util.Set<?>) value).clear();
+                            System.out.println("[Dreamcasting] Cleared Set field in ClientChunkManager: " + field.getName());
+                        } else if (value instanceof java.util.List) {
+                            ((java.util.List<?>) value).clear();
+                            System.out.println("[Dreamcasting] Cleared List field in ClientChunkManager: " + field.getName());
+                        }
+                    }
+
+                    // --- Debug: Print ClientChunkMap contents after cleanup ---
+                    for (java.lang.reflect.Field field : chunkMap.getClass().getDeclaredFields()) {
+                        field.setAccessible(true);
+                        Object value = field.get(chunkMap);
+                        if (value instanceof java.util.Map) {
+                            System.out.println("[Dreamcasting] ClientChunkMap Map field after cleanup: " + field.getName() + " size=" + ((java.util.Map<?, ?>) value).size());
+                        } else if (value instanceof java.util.Set) {
+                            System.out.println("[Dreamcasting] ClientChunkMap Set field after cleanup: " + field.getName() + " size=" + ((java.util.Set<?>) value).size());
+                        } else if (value instanceof java.util.List) {
+                            System.out.println("[Dreamcasting] ClientChunkMap List field after cleanup: " + field.getName() + " size=" + ((java.util.List<?>) value).size());
+                        }
+                    }
+                    for (java.lang.reflect.Field field : chunkManager.getClass().getDeclaredFields()) {
+                        field.setAccessible(true);
+                        Object value = field.get(chunkManager);
+                        if (value instanceof java.util.Map) {
+                            System.out.println("[Dreamcasting] ClientChunkManager Map field after cleanup: " + field.getName() + " size=" + ((java.util.Map<?, ?>) value).size());
+                        } else if (value instanceof java.util.Set) {
+                            System.out.println("[Dreamcasting] ClientChunkManager Set field after cleanup: " + field.getName() + " size=" + ((java.util.Set<?>) value).size());
+                        } else if (value instanceof java.util.List) {
+                            System.out.println("[Dreamcasting] ClientChunkManager List field after cleanup: " + field.getName() + " size=" + ((java.util.List<?>) value).size());
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("[Dreamcasting] Exception during aggressive chunk cache clear: " + e);
+                }
+                client.worldRenderer.reload();
+            }
+
+            // --- Explicitly request chunks around the player to force reload ---
+            if (client.player != null && client.world != null) {
+                int playerChunkX = client.player.getBlockPos().getX() >> 4;
+                int playerChunkZ = client.player.getBlockPos().getZ() >> 4;
+                int radius = 5; // 11x11 area
+
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        client.world.getChunkManager().getChunk(playerChunkX + dx, playerChunkZ + dz, net.minecraft.world.chunk.ChunkStatus.FULL, true);
                     }
                 }
-            } catch (Exception e) {
-                System.out.println("Error during chunk request cleanup: " + e.getMessage());
+                // Nudge the player's position to force a chunk request
+                client.player.setPosition(client.player.getX(), client.player.getY(), client.player.getZ());
+                System.out.println("[Dreamcasting] Forced chunk reload around player after dreamcasting.");
+
+                // --- Debug: Print chunk statuses around the player ---
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        net.minecraft.world.chunk.WorldChunk chunk = client.world.getChunkManager().getChunk(playerChunkX + dx, playerChunkZ + dz, net.minecraft.world.chunk.ChunkStatus.FULL, false);
+                        System.out.println("[Dreamcasting] Chunk at " + (playerChunkX + dx) + "," + (playerChunkZ + dz) + ": " + (chunk == null ? "null" : chunk.getStatus()));
+                    }
+                }
+
+                // --- Test: Teleport player 100 blocks away and back ---
+                double origX = client.player.getX();
+                double origY = client.player.getY();
+                double origZ = client.player.getZ();
+                client.player.setPosition(origX + 100, origY, origZ);
+                System.out.println("[Dreamcasting] Teleported player 100 blocks away for chunk reload test.");
+                // Wait a tick, then teleport back (schedule on client thread)
+                client.execute(() -> {
+                    client.player.setPosition(origX, origY, origZ);
+                    System.out.println("[Dreamcasting] Teleported player back to original position after chunk reload test.");
+                });
             }
-        }
-        
-        System.out.println("Dreamcasting cleanup completed");
+
+            // Force the client to stop waiting for chunks by clearing any pending chunk requests
+            // This should help with the "Waiting for chunk..." message in F3
+            if (client.world != null) {
+                try {
+                    // Force the client to process any remaining chunk operations
+                    client.world.getChunkManager().tick(() -> true, true);
+
+                    // Clear any pending chunk loading requests
+                    for (int x = -32; x <= 32; x++) {
+                        for (int z = -32; z <= 32; z++) {
+                            // Force the client to stop waiting for chunks in a large area
+                            client.world.getChunkManager().getChunk(x, z, ChunkStatus.EMPTY, false);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error during chunk request cleanup: " + e.getMessage());
+                }
+            }
+
+            System.out.println("Dreamcasting cleanup completed");
+        });
     }
 
     public static void requestEntityFromServer() {
@@ -175,7 +302,10 @@ public class DreamcastingClient {
             System.out.println("Cannot spectate null entity");
             return;
         }
-        
+        if (!isDreamcasting) {
+            System.out.println("[DEBUG] Ignoring spectateEntity because not dreamcasting.");
+            return;
+        }
         World world = client.world;
         if (world != null) {
             assert client.player != null;
@@ -237,6 +367,9 @@ public class DreamcastingClient {
 
     // Method to stop spectating and return the camera to the player
     public static void stopSpectating(MinecraftClient client) {
+        System.out.println("[Dreamcasting] stopSpectating called");
+        isDreamcasting = false;
+        System.out.println("[DEBUG] isDreamcasting set to false in stopSpectating()");
         if (client.player != null) {
             // Return the camera to the player immediately
             client.setCameraEntity(client.player);
@@ -252,6 +385,39 @@ public class DreamcastingClient {
                 // Ensure the camera is still on the player
                 client.setCameraEntity(client.player);
                 System.out.println("Camera returned to player after waking up.");
+
+                // --- Force chunk reload around player ---
+                if (client.player != null && client.world != null) {
+                    int playerChunkX = client.player.getBlockPos().getX() >> 4;
+                    int playerChunkZ = client.player.getBlockPos().getZ() >> 4;
+                    int radius = 3; // Load a 7x7 area
+
+                    for (int dx = -radius; dx <= radius; dx++) {
+                        for (int dz = -radius; dz <= radius; dz++) {
+                            client.world.getChunkManager().getChunk(playerChunkX + dx, playerChunkZ + dz, net.minecraft.world.chunk.ChunkStatus.FULL, true);
+                        }
+                    }
+                    // Nudge the player's position to force a chunk request
+                    client.player.setPosition(client.player.getX(), client.player.getY(), client.player.getZ());
+                    System.out.println("[DEBUG] Forced chunk reload around player after dreamcasting.");
+                }
+
+                // --- Force a full client chunk reload to restore vanilla behavior ---
+                //                if (client.world != null && client.world.getChunkManager() instanceof net.minecraft.client.world.ClientChunkManager) {
+                //                    try {
+                //                        it.unimi.dsi.fastutil.longs.Long2ObjectMap<net.minecraft.world.chunk.WorldChunk> chunkMap =
+                //                            ((com.maaackz.weirdcraft.mixin.client.ClientChunkManagerMixin) client.world.getChunkManager()).getChunks();
+                //                        int before = chunkMap.size();
+                //                        chunkMap.clear();
+                //                        System.out.println("[DEBUG] Cleared all loaded chunks in ClientChunkManager (before=" + before + ", after=" + chunkMap.size() + ")");
+                //                    } catch (Exception e) {
+                //                        System.out.println("[DEBUG] Failed to clear ClientChunkManager chunks: " + e);
+                //                    }
+                //                }
+                if (client.worldRenderer != null) {
+                    client.worldRenderer.reload();
+                    System.out.println("[DEBUG] Called worldRenderer.reload() to restore vanilla chunk loading.");
+                }
             });
 
             // Optional: Check if the player is still sleeping and debug
@@ -309,5 +475,58 @@ public class DreamcastingClient {
             return client.cameraEntity;
         }
         return null;
+    }
+
+    // Failsafe: On each client tick, if not dreamcasting and camera is not player, and it's soon after dreamcast ended, force camera back
+    public static void clientTickFailsafe(MinecraftClient client) {
+        if (!isDreamcasting && client.player != null && client.cameraEntity != client.player) {
+            System.out.println("[Failsafe] Camera forcibly returned to player after dreamcasting. Camera entity was: " + (client.cameraEntity != null ? client.cameraEntity.getName().getString() : "null"));
+            client.setCameraEntity(client.player);
+            resetFirstPersonPerspective(client);
+        }
+    }
+
+    // Manual test method for chunk clear/reload
+    public static void manualChunkClearTest() {
+        System.out.println("[Dreamcasting] manualChunkClearTest called");
+        cleanupDreamcasting(MinecraftClient.getInstance());
+        replaceClientChunkManager();
+    }
+
+    // Replace the ClientChunkManager instance on the world with a new one
+    public static void replaceClientChunkManager() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.world == null) {
+            System.out.println("[Dreamcasting] replaceClientChunkManager: client.world is null");
+            return;
+        }
+        try {
+            System.out.println("[Dreamcasting] Attempting to replace ClientChunkManager...");
+            java.lang.reflect.Field chunkManagerField = client.world.getClass().getDeclaredField("chunkManager");
+            chunkManagerField.setAccessible(true);
+            Object oldChunkManager = chunkManagerField.get(client.world);
+            Class<?> chunkManagerClass = oldChunkManager.getClass();
+            java.lang.reflect.Constructor<?> ctor = chunkManagerClass.getDeclaredConstructors()[0];
+            ctor.setAccessible(true);
+            // Try to match the constructor signature (ClientWorld, int)
+            Object newChunkManager = null;
+            for (java.lang.reflect.Constructor<?> c : chunkManagerClass.getDeclaredConstructors()) {
+                Class<?>[] params = c.getParameterTypes();
+                if (params.length == 2 && params[0].isAssignableFrom(client.world.getClass()) && params[1] == int.class) {
+                    c.setAccessible(true);
+                    newChunkManager = c.newInstance(client.world, 32); // 32 is a typical view distance
+                    break;
+                }
+            }
+            if (newChunkManager == null) {
+                System.out.println("[Dreamcasting] Could not find suitable ClientChunkManager constructor");
+                return;
+            }
+            chunkManagerField.set(client.world, newChunkManager);
+            System.out.println("[Dreamcasting] Successfully replaced ClientChunkManager instance!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("[Dreamcasting] Exception while replacing ClientChunkManager: " + e);
+        }
     }
 }

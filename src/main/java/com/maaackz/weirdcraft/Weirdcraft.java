@@ -129,6 +129,7 @@ public class Weirdcraft implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(EntityResponsePayload.ID, EntityResponsePayload.CODEC);
 
 		EntitySleepEvents.START_SLEEPING.register((player, pos) -> {
+			System.out.println("[DEBUG] START_SLEEPING for " + player.getName().getString());
 			if (player instanceof ServerPlayerEntity serverPlayer &&
 					serverPlayer.getEquippedStack(EquipmentSlot.HEAD).getItem() instanceof DreamcastHelmetItem) {
 
@@ -138,9 +139,11 @@ public class Weirdcraft implements ModInitializer {
 		});
 
 		EntitySleepEvents.STOP_SLEEPING.register((player, sleepingPos) -> {
+			System.out.println("[DEBUG] STOP_SLEEPING for " + player.getName().getString() + " (sending SleepPayload(false))");
 			if (player instanceof ServerPlayerEntity serverPlayer) {
 				if (serverPlayer.getCameraEntity() != serverPlayer) {
 					ServerPlayNetworking.send(serverPlayer, new SleepPayload(false));
+					DreamcastingServer.stopSpectating(serverPlayer);
 				}
 			}
 		});

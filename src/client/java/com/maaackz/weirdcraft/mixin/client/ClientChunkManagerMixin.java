@@ -2,6 +2,7 @@ package com.maaackz.weirdcraft.mixin.client;
 
 import com.maaackz.weirdcraft.DreamcastingChunkManager;
 import com.maaackz.weirdcraft.DreamcastingClient;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.client.world.ClientChunkManager;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.ChunkPos;
@@ -12,12 +13,16 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ClientChunkManager.class)
 public abstract class ClientChunkManagerMixin {
 
     @Shadow
     protected abstract WorldChunk getChunk(int x, int z, ChunkStatus status, boolean load);
+
+    //    @Accessor("chunks")
+    //    public abstract Long2ObjectMap<WorldChunk> getChunks();
 
     @Inject(method = "getChunk(IILnet/minecraft/world/chunk/ChunkStatus;Z)Lnet/minecraft/world/chunk/WorldChunk;", at = @At("RETURN"), cancellable = true)
     private void onGetChunk(int x, int z, ChunkStatus status, boolean load, CallbackInfoReturnable<WorldChunk> cir) {
