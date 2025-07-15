@@ -1,6 +1,7 @@
 package com.maaackz.weirdcraft;
 
 import com.maaackz.weirdcraft.network.EntityRequestPayload;
+import com.maaackz.weirdcraft.network.RequestChunkReloadPayload;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
@@ -34,6 +35,10 @@ public class DreamcastingClient {
         System.out.println("[Dreamcasting] dreamcast called with enable=" + enable);
         isDreamcasting = enable;
         System.out.println("[DEBUG] dreamcast() called with enable=" + enable);
+        if (enable) {
+            // Run chunk manager replacement before entering dreamcasting
+            replaceClientChunkManager();
+        }
         if (!enable) {
             lastDreamcastEndTime = System.currentTimeMillis();
         }
@@ -524,6 +529,9 @@ public class DreamcastingClient {
             }
             chunkManagerField.set(client.world, newChunkManager);
             System.out.println("[Dreamcasting] Successfully replaced ClientChunkManager instance!");
+            // Request chunk reload from server for area around player
+            ClientPlayNetworking.send(new RequestChunkReloadPayload(5)); // 5 = radius (11x11 area)
+            System.out.println("[Dreamcasting] Sent RequestChunkReloadPayload to server");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("[Dreamcasting] Exception while replacing ClientChunkManager: " + e);

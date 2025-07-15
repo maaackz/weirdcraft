@@ -12,6 +12,7 @@ public class Networking {
     public static final Identifier REQUEST_MACKEREL_PACKET_ID = Identifier.of(Weirdcraft.MOD_ID,"request_mackerel");
     public static final Identifier DREAMCAST_ENTITY_SYNC_PACKET_ID = Identifier.of(Weirdcraft.MOD_ID, "dreamcast_entity_sync");
     public static final Identifier DREAMCAST_ENTITY_SYNC_ID = Identifier.of(Weirdcraft.MOD_ID, "dreamcast_entity_sync");
+    public static final Identifier REQUEST_CHUNK_RELOAD_PACKET_ID = Identifier.of(Weirdcraft.MOD_ID, "request_chunk_reload");
 
 
 }

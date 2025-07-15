@@ -21,10 +21,14 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.chunk.ChunkStatus;
+import net.minecraft.world.chunk.WorldChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -195,6 +199,33 @@ public class Weirdcraft implements ModInitializer {
 //			});
 //
 //		});
+
+		PayloadTypeRegistry.playC2S().register(RequestChunkReloadPayload.ID, RequestChunkReloadPayload.CODEC);
+
+		ServerPlayNetworking.registerGlobalReceiver(RequestChunkReloadPayload.ID, (payload, context) -> {
+			context.server().execute(() -> {
+				ServerPlayerEntity player = context.player();
+				int radius = payload.radius();
+				ServerWorld world = player.getServerWorld();
+				ChunkPos playerChunk = player.getChunkPos();
+				for (int dx = -radius; dx <= radius; dx++) {
+					for (int dz = -radius; dz <= radius; dz++) {
+						ChunkPos chunkPos = new ChunkPos(playerChunk.x + dx, playerChunk.z + dz);
+						WorldChunk chunk = (WorldChunk) world.getChunk(chunkPos.x, chunkPos.z, ChunkStatus.FULL, false);
+						if (chunk != null) {
+							ChunkDataS2CPacket chunkPacket = new ChunkDataS2CPacket(
+								chunk,
+								world.getLightingProvider(),
+								null,
+								null
+							);
+							player.networkHandler.sendPacket(chunkPacket);
+						}
+					}
+				}
+				System.out.println("[Dreamcasting] Server resent chunks for player " + player.getName().getString());
+			});
+		});
 
 
 		// Check if EMI is loaded and register exclusions
