@@ -49,11 +49,41 @@ public class DreamcastingServer {
                 Identifier entityTypeId = Registries.ENTITY_TYPE.getId(entity.getType());
                 int entityId = entity.getId();
                 BlockPos pos = entity.getBlockPos();
-                float yaw = entity.getYaw();
+                float yaw = entity.getHeadYaw();
                 float pitch = entity.getPitch();
                 Vec3d velocity = entity.getVelocity();
                 NbtCompound nbt = new NbtCompound();
                 entity.writeNbt(nbt);
+                // Patch: Remove sleeping state if entity is not sleeping (robust villager check)
+                boolean isSleeping = false;
+                if (entity instanceof net.minecraft.entity.LivingEntity living) {
+                    // Default: use isSleeping() for non-villagers
+                    isSleeping = false;
+                    try {
+                        isSleeping = living.isSleeping();
+                    } catch (Exception ignored) {}
+                    // For villagers, use Brain.memories last_slept/last_woken
+                    if (entity.getType().getTranslationKey().contains("villager") && nbt.contains("Brain")) {
+                        net.minecraft.nbt.NbtCompound brain = nbt.getCompound("Brain");
+                        if (brain.contains("memories")) {
+                            net.minecraft.nbt.NbtCompound memories = brain.getCompound("memories");
+                            if (memories.contains("minecraft:last_slept") && memories.contains("minecraft:last_woken")) {
+                                long lastSlept = memories.getCompound("minecraft:last_slept").getLong("value");
+                                long lastWoken = memories.getCompound("minecraft:last_woken").getLong("value");
+                                isSleeping = lastSlept > lastWoken;
+                            }
+                        }
+                    }
+                    if (!isSleeping) {
+                        nbt.remove("Sleeping");
+                        nbt.remove("sleeping"); // Some mappings use lowercase
+                        nbt.remove("SleepingX");
+                        nbt.remove("SleepingY");
+                        nbt.remove("SleepingZ");
+                    }
+                }
+                // Debug: Print the full NBT being sent
+                // System.out.println("[DreamcastServer Debug] Sending NBT to client: " + nbt);
                 DreamcastEntitySyncPayload payload = new DreamcastEntitySyncPayload(
                     entityTypeId, entityId, pos, velocity, yaw, pitch, nbt
                 );
@@ -63,8 +93,19 @@ public class DreamcastingServer {
     }
 
     public static void handleEntityRequest(ServerPlayerEntity player) {
-        // Find a random entity with the "test" name tag
-        Entity entity = findRandomEntityWithNameTag(player.getServerWorld(), player, "test");
+        // First, look for a non-self player entity
+        ServerWorld world = player.getServerWorld();
+        Entity entity = null;
+        for (ServerPlayerEntity otherPlayer : world.getPlayers()) {
+            if (!otherPlayer.getUuid().equals(player.getUuid())) {
+                entity = otherPlayer;
+                break;
+            }
+        }
+        // If no other player found, look for a 'test'-named entity
+        if (entity == null) {
+            entity = findRandomEntityWithNameTag(world, player, "test");
+        }
 
         if (entity != null) {
             System.out.println("Found entity: " + entity.getName().getString() + " at " + entity.getBlockPos());

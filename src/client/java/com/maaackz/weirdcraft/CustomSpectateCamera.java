@@ -38,12 +38,16 @@ public class CustomSpectateCamera extends Entity {
     @Override
     public void tick() {
         super.tick();
-        
-        // Keep the camera stable at the target position
-        // Don't constantly update position to avoid flickering
-        if (this.getPos().squaredDistanceTo(targetPos.getX() + 2.0, targetPos.getY() + 3.0, targetPos.getZ() + 2.0) > 1.0) {
-            this.setPosition(targetPos.getX() + 2.0, targetPos.getY() + 3.0, targetPos.getZ() + 2.0);
-        }
+        // Smoothly interpolate camera position toward the target
+        double targetX = targetPos.getX() + 2.0;
+        double targetY = targetPos.getY() + 3.0;
+        double targetZ = targetPos.getZ() + 2.0;
+        Vec3d current = this.getPos();
+        double lerpFactor = 0.2; // 0.0 = no movement, 1.0 = instant snap
+        double newX = current.x + (targetX - current.x) * lerpFactor;
+        double newY = current.y + (targetY - current.y) * lerpFactor;
+        double newZ = current.z + (targetZ - current.z) * lerpFactor;
+        this.setPosition(newX, newY, newZ);
     }
     
     @Override

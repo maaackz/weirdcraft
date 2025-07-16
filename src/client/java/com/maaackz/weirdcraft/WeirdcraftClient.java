@@ -206,12 +206,158 @@ public class WeirdcraftClient implements ClientModInitializer {
                     client.world.addEntity(dreamcastedEntity);
                 }
 
+                // --- Make the entity invisible and disable particles ---
+                dreamcastedEntity.setInvisible(true);
+                if (dreamcastedEntity instanceof net.minecraft.entity.LivingEntity living) {
+                    living.setInvisible(true);
+                    living.setSilent(true); // Optional: mute sounds
+                    // TODO: Hide viewmodel/hand when spectating (requires mixin on HeldItemRenderer)
+                }
                 // Update entity state
                 dreamcastedEntity.setPos(payload.pos().getX() + 0.5, payload.pos().getY(), payload.pos().getZ() + 0.5);
                 dreamcastedEntity.setYaw(payload.yaw());
                 dreamcastedEntity.setPitch(payload.pitch());
                 dreamcastedEntity.setVelocity(payload.velocity());
+                // System.out.println("[DREAMCAST CLIENT] NBT: " + payload.nbt());
                 dreamcastedEntity.readNbt(payload.nbt());
+
+                // --- Ensure camera follows entity rotation every tick ---
+                if (client.cameraEntity == dreamcastedEntity) {
+                    client.cameraEntity.setYaw(payload.yaw());
+                    client.cameraEntity.setPitch(payload.pitch());
+                }
+
+                // --- Debug log fake entity properties ---
+                System.out.println("[Dreamcast Debug] Entity type: " + dreamcastedEntity.getType());
+                System.out.println("[Dreamcast Debug] Entity class: " + dreamcastedEntity.getClass().getName());
+                System.out.println("[Dreamcast Debug] Position: " + dreamcastedEntity.getPos());
+                System.out.println("[Dreamcast Debug] Yaw: " + dreamcastedEntity.getYaw() + ", Pitch: " + dreamcastedEntity.getPitch());
+                System.out.println("[Dreamcast Debug] Velocity: " + dreamcastedEntity.getVelocity());
+                if (dreamcastedEntity instanceof net.minecraft.entity.LivingEntity living) {
+                    try {
+                        Object pose = living.getClass().getMethod("getPose").invoke(living);
+                        System.out.println("[Dreamcast Debug] Pose: " + pose);
+                    } catch (Exception e) {
+                        System.out.println("[Dreamcast Debug] Could not get pose: " + e);
+                    }
+                    try {
+                        boolean isSleeping = (boolean) living.getClass().getMethod("isSleeping").invoke(living);
+                        System.out.println("[Dreamcast Debug] isSleeping: " + isSleeping);
+                    } catch (Exception e) {
+                        System.out.println("[Dreamcast Debug] Could not get isSleeping: " + e);
+                    }
+                    // Print tracked data
+                    try {
+                        java.lang.reflect.Field dataTrackerField = net.minecraft.entity.LivingEntity.class.getDeclaredField("dataTracker");
+                        dataTrackerField.setAccessible(true);
+                        net.minecraft.entity.data.DataTracker tracker = (net.minecraft.entity.data.DataTracker) dataTrackerField.get(living);
+                        System.out.println("[Dreamcast Debug] DataTracker: " + tracker);
+                        // Print all tracked entries
+                        try {
+                            java.util.List entries = (java.util.List) tracker.getClass().getMethod("getEntries").invoke(tracker);
+                            System.out.println("[Dreamcast Debug] Tracked entries: " + entries);
+                        } catch (Exception e2) {
+                            System.out.println("[Dreamcast Debug] Could not get tracked entries: " + e2);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("[Dreamcast Debug] Could not get DataTracker: " + e);
+                    }
+                }
+
+                // --- Debug: Print all fields for this entity and its superclasses ---
+                Class<?> debugClazz = dreamcastedEntity.getClass();
+                // while (debugClazz != null) {
+                //     for (java.lang.reflect.Field f : debugClazz.getDeclaredFields()) {
+                //         System.out.println("[Dreamcast Debug] Field: " + f.getName() + " Type: " + f.getType().getName());
+                //     }
+                //     debugClazz = debugClazz.getSuperclass();
+                // }
+
+                // --- Animate and fix pose for correct entity types ---
+                if (dreamcastedEntity instanceof net.minecraft.entity.LivingEntity living) {
+                    // --- Animate walking ---
+                    boolean isSleeping = false;
+                    // --- Robust isSleeping calculation ---
+                    if (dreamcastedEntity instanceof net.minecraft.entity.passive.VillagerEntity) {
+                        // Use NBT for villager sleep state
+                        if (payload.nbt().contains("Brain")) {
+                            net.minecraft.nbt.NbtCompound brain = payload.nbt().getCompound("Brain");
+                            if (brain.contains("memories")) {
+                                net.minecraft.nbt.NbtCompound memories = brain.getCompound("memories");
+                                long lastSlept = 0L, lastWoken = 0L;
+                                if (memories.contains("minecraft:last_slept")) {
+                                    lastSlept = memories.getCompound("minecraft:last_slept").getLong("value");
+                                }
+                                if (memories.contains("minecraft:last_woken")) {
+                                    lastWoken = memories.getCompound("minecraft:last_woken").getLong("value");
+                                }
+                                isSleeping = lastSlept > lastWoken;
+                                System.out.println("[Dreamcast Debug] Villager lastSlept=" + lastSlept + ", lastWoken=" + lastWoken + ", isSleeping=" + isSleeping);
+                            }
+                        }
+                    } else {
+                        // Use isSleeping() for other entities
+                        try {
+                            isSleeping = (boolean) living.getClass().getMethod("isSleeping").invoke(living);
+                        } catch (Exception ignored) {
+                            // Fallback: check pose
+                            try {
+                                Object pose = living.getClass().getMethod("getPose").invoke(living);
+                                isSleeping = pose != null && pose.toString().equals("SLEEPING");
+                            } catch (Exception ignored2) {}
+                        }
+                    }
+                    System.out.println("[Dreamcast Debug] isSleeping: " + isSleeping);
+
+                    // --- Forcibly set pose tracked data for Player/Villager if not sleeping ---
+                    if ((dreamcastedEntity instanceof net.minecraft.entity.player.PlayerEntity || dreamcastedEntity instanceof net.minecraft.entity.passive.VillagerEntity) && !isSleeping) {
+                        try {
+                            // Find static TrackedData<EntityPose> field (POSE) by type
+                            java.lang.reflect.Field poseField = null;
+                            Class<?> clazz = living.getClass();
+                            while (clazz != null && poseField == null) {
+                                for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
+                                    if (java.lang.reflect.Modifier.isStatic(f.getModifiers()) &&
+                                        net.minecraft.entity.data.TrackedData.class.isAssignableFrom(f.getType()) &&
+                                        f.getGenericType().getTypeName().contains("EntityPose")) {
+                                        poseField = f;
+                                        break;
+                                    }
+                                }
+                                clazz = clazz.getSuperclass();
+                            }
+                            if (poseField != null) {
+                                poseField.setAccessible(true);
+                                net.minecraft.entity.data.TrackedData trackedPose = (net.minecraft.entity.data.TrackedData) poseField.get(null);
+                                living.getDataTracker().set(trackedPose, net.minecraft.entity.EntityPose.STANDING);
+                                System.out.println("[Dreamcast Debug] Forcibly set pose tracked data to STANDING");
+				} else {
+                                System.out.println("[Dreamcast Debug] Could not find POSE tracked data field");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("[Dreamcast Debug] Could not forcibly set pose tracked data: " + e);
+                        }
+                    }
+
+                    // Animate limb swing for all living entities
+                    double dx = living.getX() - living.prevX;
+                    double dz = living.getZ() - living.prevZ;
+                    float limbSwingAmount = (float)Math.sqrt(dx * dx + dz * dz) * 4.0F;
+                    boolean set = false;
+                    try {
+                        java.lang.reflect.Field f = living.getClass().getDeclaredField("limbDistance");
+                        f.setAccessible(true);
+                        f.setFloat(living, limbSwingAmount);
+                        set = true;
+                    } catch (Exception ignored) {}
+                    if (!set) {
+                        try {
+                            java.lang.reflect.Field f = living.getClass().getDeclaredField("limbSwingAmount");
+                            f.setAccessible(true);
+                            f.setFloat(living, limbSwingAmount);
+                        } catch (Exception ignored) {}
+                    }
+                }
 
                 // Set camera to spectate this entity only if not already
                 if (client.cameraEntity != dreamcastedEntity) {
@@ -250,6 +396,17 @@ public class WeirdcraftClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (DreamcastingClient.isDreamcasting()) {
 				DreamcastingClient.forceCameraLock(client);
+				
+				// Additional camera rotation enforcement
+				if (client.cameraEntity != null && client.cameraEntity != client.player && dreamcastedEntity != null) {
+					try {
+						// Force camera rotation to match the dreamcasted entity
+						client.cameraEntity.setYaw(dreamcastedEntity.getHeadYaw());
+						client.cameraEntity.setPitch(dreamcastedEntity.getPitch());
+					} catch (Exception e) {
+						// Ignore errors, this is just a backup
+					}
+				}
 			}
 			// Failsafe: forcibly return camera to player if needed
 			DreamcastingClient.clientTickFailsafe(client);

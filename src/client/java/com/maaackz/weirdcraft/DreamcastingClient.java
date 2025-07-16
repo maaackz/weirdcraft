@@ -73,6 +73,18 @@ public class DreamcastingClient {
 
         // Reset wasSleeping flag after processing
         wasSleeping = false; // Reset flag after handling dreamcasting logic
+        
+        // Force camera rotation reset after sleep state changes
+        if (enable && client.player != null && client.player.isSleeping()) {
+            client.execute(() -> {
+                // Force a camera update to ensure rotation is applied after sleep
+                if (client.cameraEntity != null) {
+                    client.cameraEntity.setYaw(client.cameraEntity.getHeadYaw());
+                    client.cameraEntity.setPitch(client.cameraEntity.getPitch());
+                    System.out.println("[Dreamcasting] Forced camera rotation reset after sleep");
+                }
+            });
+        }
     }
     
     // Method to clean up dreamcasting state
@@ -279,7 +291,7 @@ public class DreamcastingClient {
         World world = client.world;
         if (world != null) {
             assert client.player != null;
-            setThirdPersonPerspective(client);
+            // setThirdPersonPerspective(client);
             // Increase the search radius to beyond the normal render distance
             int range = 10000; // Increase this value to search a larger area
             Box searchArea = new Box(client.player.getPos().add(-range, -range, -range), client.player.getPos().add(range, range, range));
@@ -325,8 +337,8 @@ public class DreamcastingClient {
                 world.getChunkManager().getChunk(chunkPos.x, chunkPos.z, ChunkStatus.FULL, true);
             }
             
-            // Set third-person perspective for better spectating
-            setThirdPersonPerspective(client);
+            // Set first-person perspective for immersive spectating
+            resetFirstPersonPerspective(client);
             
             // Set the camera to spectate the entity
             client.setCameraEntity(entity);
@@ -355,7 +367,7 @@ public class DreamcastingClient {
         }
         
         // Set third-person perspective for better spectating
-        setThirdPersonPerspective(client);
+        // setThirdPersonPerspective(client);
         
         // Create a custom camera entity that follows the entity position
         CustomSpectateCamera camera = new CustomSpectateCamera(world, entityPos, entityName);
@@ -372,62 +384,31 @@ public class DreamcastingClient {
 
     // Method to stop spectating and return the camera to the player
     public static void stopSpectating(MinecraftClient client) {
-        System.out.println("[Dreamcasting] stopSpectating called");
-        isDreamcasting = false;
-        System.out.println("[DEBUG] isDreamcasting set to false in stopSpectating()");
-        if (client.player != null) {
-            // Return the camera to the player immediately
-            client.setCameraEntity(client.player);
-            
-            resetFirstPersonPerspective(client);
-            
-            // Send packet to stop sleeping (this wakes the player up)
-            ClientPlayNetworkHandler clientPlayNetworkHandler = client.player.networkHandler;
-            clientPlayNetworkHandler.sendPacket(new ClientCommandC2SPacket(client.player, ClientCommandC2SPacket.Mode.STOP_SLEEPING));
-
-            // Wait for a moment to allow the game to process the wake-up
-            client.execute(() -> {
-                // Ensure the camera is still on the player
+        client.execute(() -> {
+            System.out.println("[Dreamcasting] stopSpectating called");
+            isDreamcasting = false;
+            System.out.println("[DEBUG] isDreamcasting set to false in stopSpectating()");
+            if (client.player != null) {
+                // Return the camera to the player immediately
                 client.setCameraEntity(client.player);
-                System.out.println("Camera returned to player after waking up.");
 
-                // --- Force chunk reload around player ---
-                if (client.player != null && client.world != null) {
-                    int playerChunkX = client.player.getBlockPos().getX() >> 4;
-                    int playerChunkZ = client.player.getBlockPos().getZ() >> 4;
-                    int radius = 3; // Load a 7x7 area
+                resetFirstPersonPerspective(client);
 
-                    for (int dx = -radius; dx <= radius; dx++) {
-                        for (int dz = -radius; dz <= radius; dz++) {
-                            client.world.getChunkManager().getChunk(playerChunkX + dx, playerChunkZ + dz, net.minecraft.world.chunk.ChunkStatus.FULL, true);
-                        }
-                    }
-                    // Nudge the player's position to force a chunk request
-                    client.player.setPosition(client.player.getX(), client.player.getY(), client.player.getZ());
-                    System.out.println("[DEBUG] Forced chunk reload around player after dreamcasting.");
-                }
+                // Send packet to stop sleeping (this wakes the player up)
+                ClientPlayNetworkHandler clientPlayNetworkHandler = client.player.networkHandler;
+                clientPlayNetworkHandler.sendPacket(new ClientCommandC2SPacket(client.player, ClientCommandC2SPacket.Mode.STOP_SLEEPING));
 
-                // --- Force a full client chunk reload to restore vanilla behavior ---
-                //                if (client.world != null && client.world.getChunkManager() instanceof net.minecraft.client.world.ClientChunkManager) {
-                //                    try {
-                //                        it.unimi.dsi.fastutil.longs.Long2ObjectMap<net.minecraft.world.chunk.WorldChunk> chunkMap =
-                //                            ((com.maaackz.weirdcraft.mixin.client.ClientChunkManagerMixin) client.world.getChunkManager()).getChunks();
-                //                        int before = chunkMap.size();
-                //                        chunkMap.clear();
-                //                        System.out.println("[DEBUG] Cleared all loaded chunks in ClientChunkManager (before=" + before + ", after=" + chunkMap.size() + ")");
-                //                    } catch (Exception e) {
-                //                        System.out.println("[DEBUG] Failed to clear ClientChunkManager chunks: " + e);
-                //                    }
-                //                }
-                if (client.worldRenderer != null) {
+                // --- Always send chunk reload packet after camera is restored ---
+                System.out.println("[Dreamcasting] Sending RequestChunkReloadPayload to server after spectate end");
+                ClientPlayNetworking.send(new RequestChunkReloadPayload(5)); // 5 = radius (11x11 area)
+
+                // --- Force local chunk reload and renderer reload ---
+                if (client.world != null && client.worldRenderer != null) {
                     client.worldRenderer.reload();
-                    System.out.println("[DEBUG] Called worldRenderer.reload() to restore vanilla chunk loading.");
+                    System.out.println("[Dreamcasting] Called worldRenderer.reload() after chunk reload packet");
                 }
-            });
-
-            // Optional: Check if the player is still sleeping and debug
-            System.out.println("Sleeping? " + client.player.isSleeping());
-        }
+            }
+        });
     }
 
     // Force third-person perspective (F5)
@@ -458,9 +439,9 @@ public class DreamcastingClient {
             }
         }
         // Optionally, force third-person perspective
-        if (client.options.getPerspective() != Perspective.THIRD_PERSON_BACK) {
-            client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
-        }
+        // if (client.options.getPerspective() != Perspective.THIRD_PERSON_BACK) {
+        //     client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+        // }
     }
 
     // Optionally, you could log when Dreamcasting is toggled

@@ -21,7 +21,10 @@
 		"ClientChunkMapMixin",
 		"HideCustomNameMixin",
 		"ViewModelMixin",
-		"CoinMixin"
+		"CoinMixin",
+		"DreamcastingCameraRotationMixin",
+		"GameRendererCameraMixin",
+		"CameraAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
