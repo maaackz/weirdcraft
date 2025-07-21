@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.SleepingChatScreen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.option.Perspective;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientChunkManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
@@ -18,7 +19,6 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
-import com.maaackz.weirdcraft.CustomSpectateCamera;
 
 import java.util.List;
 import java.util.Random;
@@ -75,16 +75,17 @@ public class DreamcastingClient {
         wasSleeping = false; // Reset flag after handling dreamcasting logic
         
         // Force camera rotation reset after sleep state changes
-        if (enable && client.player != null && client.player.isSleeping()) {
-            client.execute(() -> {
-                // Force a camera update to ensure rotation is applied after sleep
-                if (client.cameraEntity != null) {
-                    client.cameraEntity.setYaw(client.cameraEntity.getHeadYaw());
-                    client.cameraEntity.setPitch(client.cameraEntity.getPitch());
-                    System.out.println("[Dreamcasting] Forced camera rotation reset after sleep");
-                }
-            });
-        }
+//        if (enable && client.player != null && client.player.isSleeping()) {
+//            client.execute(() -> {
+//                // Force a camera update to ensure rotation is applied after sleep
+//                if (client.cameraEntity != null) {
+////                    client.gameRenderer.close();
+////                            (client.cameraEntity.getHeadYaw());
+////                    client.cameraEntity.setPitch(client.cameraEntity.getPitch());
+//                    System.out.println("[Dreamcasting] Forced camera rotation reset after sleep");
+//                }
+//            });
+//        }
     }
     
     // Method to clean up dreamcasting state
@@ -114,14 +115,6 @@ public class DreamcastingClient {
                 } catch (Exception e) {
                     System.out.println("Error during chunk manager cleanup: " + e.getMessage());
                 }
-            }
-
-            // Clear any custom camera entities that might still be in the world
-            if (client.world != null) {
-                client.world.getEntitiesByClass(CustomSpectateCamera.class,
-                        new Box(client.player.getPos().add(-1000, -1000, -1000),
-                                client.player.getPos().add(1000, 1000, 1000)),
-                        entity -> true).forEach(Entity::discard);
             }
 
             // Force a world tick to process any remaining operations
@@ -306,7 +299,9 @@ public class DreamcastingClient {
                 // Pick a random entity with the name tag "test" to spectate
                 Random random = new Random();
                 Entity randomEntity = entities.get(random.nextInt(entities.size()));
-
+                Camera camera = client.gameRenderer.getCamera();
+                client.gameRenderer.reset();
+                camera.reset();
                 // Set the camera to spectate the selected entity
                 client.setCameraEntity(randomEntity);
             }
@@ -342,6 +337,8 @@ public class DreamcastingClient {
             
             // Set the camera to spectate the entity
             client.setCameraEntity(entity);
+            Camera camera = client.gameRenderer.getCamera();
+            System.out.println("[ROTATION PRINT] " + camera.getRotation() + " : " + camera.getYaw() + " : " + camera.getPitch());
             System.out.println("Now spectating entity: " + entity.getName().getString() + " (ID: " + entity.getId() + ")");
         }
     }
@@ -366,20 +363,18 @@ public class DreamcastingClient {
             return;
         }
         
-        // Set third-person perspective for better spectating
-        // setThirdPersonPerspective(client);
-        
-        // Create a custom camera entity that follows the entity position
-        CustomSpectateCamera camera = new CustomSpectateCamera(world, entityPos, entityName);
-        
-        // Add the camera entity to the world if not already present
-        if (!world.getEntitiesByClass(CustomSpectateCamera.class, camera.getBoundingBox(), e -> true).contains(camera)) {
-            world.spawnEntity(camera);
+        // Try to find the dreamcasted entity and spectate it directly
+        Entity dreamcastedEntity = com.maaackz.weirdcraft.WeirdcraftClient.getDreamcastedEntity();
+        if (dreamcastedEntity != null) {
+            // Set first-person perspective for immersive spectating
+            resetFirstPersonPerspective(client);
+            
+            // Set the camera to spectate the dreamcasted entity directly
+            client.setCameraEntity(dreamcastedEntity);
+            System.out.println("Now spectating dreamcasted entity: " + dreamcastedEntity.getName().getString() + " at position: " + entityPos);
+        } else {
+            System.out.println("Cannot spectate entity: no dreamcasted entity available");
         }
-        
-        // Set the camera to our custom spectate camera
-        client.setCameraEntity(camera);
-        System.out.println("Now spectating entity at position: " + entityPos + " (Name: " + entityName + ")");
     }
 
     // Method to stop spectating and return the camera to the player
@@ -425,19 +420,15 @@ public class DreamcastingClient {
 
     // Force the camera entity and perspective during dreamcasting to prevent flicker
     public static void forceCameraLock(MinecraftClient client) {
-        if (!isDreamcasting) return;
-        // Find the custom camera entity if it exists
-        if (client.cameraEntity == null || !(client.cameraEntity instanceof CustomSpectateCamera)) {
-            // Try to find the custom camera in the world
-            if (client.world != null) {
-                for (Entity entity : client.world.getEntities()) {
-                    if (entity instanceof CustomSpectateCamera) {
-                        client.setCameraEntity(entity);
-                        break;
-                    }
-                }
-            }
-        }
+//        if (!isDreamcasting) return;
+        
+        // Ensure we're spectating the dreamcasted entity
+//        Entity dreamcastedEntity = com.maaackz.weirdcraft.WeirdcraftClient.getDreamcastedEntity();
+//        if (dreamcastedEntity != null && client.cameraEntity != dreamcastedEntity) {
+//            client.setCameraEntity(dreamcastedEntity);
+//            System.out.println("[CameraLock] Forced camera to dreamcasted entity: " + dreamcastedEntity.getName().getString());
+//        }
+        
         // Optionally, force third-person perspective
         // if (client.options.getPerspective() != Perspective.THIRD_PERSON_BACK) {
         //     client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
@@ -456,9 +447,17 @@ public class DreamcastingClient {
 
     // Get the current dreamcasting camera entity, if any
     public static Entity getDreamcastingCameraEntity() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.cameraEntity instanceof CustomSpectateCamera) {
-            return client.cameraEntity;
+        // Use the static fakeCameraPlayerEntity from WeirdcraftClient
+        try {
+            Class<?> clientClass = Class.forName("com.maaackz.weirdcraft.WeirdcraftClient");
+            java.lang.reflect.Field field = clientClass.getDeclaredField("fakeCameraPlayerEntity");
+            field.setAccessible(true);
+            Object fakeCamera = field.get(null);
+            if (fakeCamera instanceof Entity && ((Entity)fakeCamera).isAlive()) {
+                return (Entity)fakeCamera;
+            }
+        } catch (Exception e) {
+            // Ignore errors
         }
         return null;
     }

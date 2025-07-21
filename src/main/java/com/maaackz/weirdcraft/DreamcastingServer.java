@@ -1,11 +1,10 @@
 package com.maaackz.weirdcraft;
 
-import com.maaackz.weirdcraft.network.EntityResponsePayload;
 import com.maaackz.weirdcraft.network.DreamcastEntitySyncPayload;
+import com.maaackz.weirdcraft.network.EntityResponsePayload;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
 import net.minecraft.registry.Registries;
@@ -23,7 +22,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,7 +56,6 @@ public class DreamcastingServer {
                 boolean isSleeping = false;
                 if (entity instanceof net.minecraft.entity.LivingEntity living) {
                     // Default: use isSleeping() for non-villagers
-                    isSleeping = false;
                     try {
                         isSleeping = living.isSleeping();
                     } catch (Exception ignored) {}

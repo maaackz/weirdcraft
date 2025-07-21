@@ -22,21 +22,21 @@ public class DreamcastHelmetItem extends ArmorItem {
 
     public void onSleep(ServerPlayerEntity player) {
 
-        if (player.getWorld().isClient) {
-            // Get nearby entities
-            List<Entity> nearbyEntities = player.getWorld().getEntitiesByClass(
-                    Entity.class,
-                    new Box(player.getX() - 50, player.getY() - 50, player.getZ() - 50,
-                            player.getX() + 50, player.getY() + 50, player.getZ() + 50),
-                    entity -> entity != player // Exclude the player
-            );
+        // if (player.getWorld().isClient) {
+        //     // Get nearby entities
+        //     List<Entity> nearbyEntities = player.getWorld().getEntitiesByClass(
+        //             Entity.class,
+        //             new Box(player.getX() - 50, player.getY() - 50, player.getZ() - 50,
+        //                     player.getX() + 50, player.getY() + 50, player.getZ() + 50),
+        //             entity -> entity != player // Exclude the player
+        //     );
 
-            if (!nearbyEntities.isEmpty()) {
-                Entity randomEntity = nearbyEntities.get(new Random().nextInt(nearbyEntities.size()));
+        //     if (!nearbyEntities.isEmpty()) {
+        //         Entity randomEntity = nearbyEntities.get(new Random().nextInt(nearbyEntities.size()));
 
-                // Use the helper class to set the camera
-            }
-        }
+        //         // Use the helper class to set the camera
+        //     }
+        // }
     }
 
     public void onWakeUp(ServerPlayerEntity player) {

@@ -18,6 +18,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.Entity;
@@ -27,6 +28,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkStatus;
 import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.world.ClientWorld;
 
 public class WeirdcraftClient implements ClientModInitializer {
 
@@ -54,8 +56,20 @@ public class WeirdcraftClient implements ClientModInitializer {
 
     // Store the current dreamcasted entity for updates and camera
     private static Entity dreamcastedEntity = null;
+    
+    // Getter for dreamcasted entity
+    public static Entity getDreamcastedEntity() {
+        return dreamcastedEntity;
+    }
 
 	private KeyBinding manualChunkClearKey;
+
+	// Track previous sleeping state for sleep transition detection
+	private boolean prevDreamcastedSleeping = false;
+	private FakeCameraPlayerEntity fakeCameraPlayerEntity = null;
+
+	private static int fakeCameraWaitTicks = 0;
+	private static int lastCameraWaitEntityId = -1;
 
 
 	@Override
@@ -204,13 +218,15 @@ public class WeirdcraftClient implements ClientModInitializer {
                     // Set the entity ID to match the server (for camera tracking)
                     dreamcastedEntity.setId(payload.entityId());
                     client.world.addEntity(dreamcastedEntity);
+
+
                 }
 
                 // --- Make the entity invisible and disable particles ---
                 dreamcastedEntity.setInvisible(true);
                 if (dreamcastedEntity instanceof net.minecraft.entity.LivingEntity living) {
                     living.setInvisible(true);
-                    living.setSilent(true); // Optional: mute sounds
+                    living.setSilent(false); // Optional: mute sounds
                     // TODO: Hide viewmodel/hand when spectating (requires mixin on HeldItemRenderer)
                 }
                 // Update entity state
@@ -223,6 +239,7 @@ public class WeirdcraftClient implements ClientModInitializer {
 
                 // --- Ensure camera follows entity rotation every tick ---
                 if (client.cameraEntity == dreamcastedEntity) {
+                    assert client.cameraEntity != null;
                     client.cameraEntity.setYaw(payload.yaw());
                     client.cameraEntity.setPitch(payload.pitch());
                 }
@@ -360,24 +377,18 @@ public class WeirdcraftClient implements ClientModInitializer {
                 }
 
                 // Set camera to spectate this entity only if not already
-                if (client.cameraEntity != dreamcastedEntity) {
+                // if (client.cameraEntity != dreamcastedEntity) {
                     DreamcastingClient.spectateEntity(client, dreamcastedEntity);
-				}
+				// }
 			});
 		});
 
-		manualChunkClearKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-			"key.weirdcraft.manual_chunk_clear",
-			InputUtil.Type.KEYSYM,
-			GLFW.GLFW_KEY_F9,
-			"category.weirdcraft"
-		));
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (manualChunkClearKey.wasPressed()) {
-				System.out.println("[Dreamcasting] F9 pressed: manual chunk clear/reload test");
-				com.maaackz.weirdcraft.DreamcastingClient.manualChunkClearTest();
-			}
-		});
+//		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+//			if (manualChunkClearKey.wasPressed()) {
+//				System.out.println("[Dreamcasting] F9 pressed: manual chunk clear/reload test");
+//				com.maaackz.weirdcraft.DreamcastingClient.manualChunkClearTest();
+//			}
+//		});
 
 		JesusGui.init();
 		HudRenderCallback.EVENT.register((DrawContext context, RenderTickCounter counter) -> {
@@ -395,18 +406,108 @@ public class WeirdcraftClient implements ClientModInitializer {
 		// Register a tick event to lock the camera entity and perspective during dreamcasting
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (DreamcastingClient.isDreamcasting()) {
-				DreamcastingClient.forceCameraLock(client);
-				
-				// Additional camera rotation enforcement
-				if (client.cameraEntity != null && client.cameraEntity != client.player && dreamcastedEntity != null) {
-					try {
-						// Force camera rotation to match the dreamcasted entity
-						client.cameraEntity.setYaw(dreamcastedEntity.getHeadYaw());
-						client.cameraEntity.setPitch(dreamcastedEntity.getPitch());
-					} catch (Exception e) {
-						// Ignore errors, this is just a backup
+				// --- Camera entity management ---
+				if (dreamcastedEntity != null) {
+					ChunkPos chunkPos = new ChunkPos(dreamcastedEntity.getBlockPos());
+					boolean chunkLoaded = DreamcastingChunkManager.hasChunkAtPosition(chunkPos.x, chunkPos.z);
+                    // Track how many ticks we've been waiting for this entity's chunk
+                    if (fakeCameraPlayerEntity == null) {
+                        fakeCameraWaitTicks = 0;
+                        lastCameraWaitEntityId = dreamcastedEntity.getId();
+                    } else if (lastCameraWaitEntityId != dreamcastedEntity.getId()) {
+                        fakeCameraWaitTicks = 0;
+                        lastCameraWaitEntityId = dreamcastedEntity.getId();
+                    }
+                    if (!chunkLoaded) {
+                        fakeCameraWaitTicks++;
+                        System.out.println("[FakeCamera] Waiting for chunk to load before switching camera (" + chunkPos.x + ", " + chunkPos.z + ")");
+                        // Print all loaded dreamcasting chunks
+                        System.out.print("[FakeCamera] DreamcastingChunkManager loaded chunks: ");
+                        for (int[] c : DreamcastingChunkManager.getAllChunkCoords()) {
+                            System.out.print("(" + c[0] + "," + c[1] + ") ");
+                        }
+                        System.out.println();
+                        // Fallback: if entity is present and alive for >10 ticks, allow camera switch
+                        if (fakeCameraWaitTicks < 10) {
+                            // Do not switch camera yet
+                            return;
+                        } else if (dreamcastedEntity.isAlive()) {
+                            System.out.println("[FakeCamera] Fallback: entity is alive after 10 ticks, switching camera anyway.");
+                        } else {
+                            return;
+                        }
+                    } else {
+                        fakeCameraWaitTicks = 0;
+                    }
+					if (fakeCameraPlayerEntity == null || !fakeCameraPlayerEntity.isAlive() || fakeCameraPlayerEntity.getWorld() != client.world) {
+						// Remove any old camera entity
+						if (fakeCameraPlayerEntity != null && fakeCameraPlayerEntity.getWorld() != null) {
+							fakeCameraPlayerEntity.discard();
+						}
+						// Create new fake player camera entity
+						fakeCameraPlayerEntity = new FakeCameraPlayerEntity((ClientWorld)client.world, client.getNetworkHandler(), client.player);
+						fakeCameraPlayerEntity.setTargetEntity(dreamcastedEntity);
+						client.world.spawnEntity(fakeCameraPlayerEntity);
+						System.out.println("[FakeCamera] Created and spawned new fake player camera entity");
+					}
+					// Always sync target entity
+					fakeCameraPlayerEntity.setTargetEntity(dreamcastedEntity);
+					// --- Forcibly sync rotation every tick ---
+					if (fakeCameraPlayerEntity != null && dreamcastedEntity != null) {
+						fakeCameraPlayerEntity.setYaw(dreamcastedEntity.getYaw());
+						fakeCameraPlayerEntity.setPitch(dreamcastedEntity.getPitch());
+						fakeCameraPlayerEntity.prevYaw = dreamcastedEntity.prevYaw;
+						fakeCameraPlayerEntity.prevPitch = dreamcastedEntity.prevPitch;
+					}
+					// Force camera lock
+					if (client.cameraEntity != fakeCameraPlayerEntity) {
+						System.out.println("[FakeCamera] Switching camera entity. Camera: " + System.identityHashCode(fakeCameraPlayerEntity) + ", Spectated: " + System.identityHashCode(dreamcastedEntity));
+						client.setCameraEntity(fakeCameraPlayerEntity);
+						System.out.println("[FakeCamera] Set camera entity to fake player camera");
 					}
 				}
+
+				// Print debug info every second
+				if (System.currentTimeMillis() % 1000 < 50) {
+					System.out.println("[DEBUG] Camera entity: " + client.cameraEntity + " (" + (client.cameraEntity != null ? client.cameraEntity.getClass().getName() : "null") + ")");
+					System.out.println("[DEBUG] Dreamcasted entity: " + (dreamcastedEntity != null ? dreamcastedEntity + " (" + dreamcastedEntity.getClass().getName() + ")" : "null"));
+					if (client.cameraEntity != null) {
+						System.out.println("[DEBUG] Camera yaw: " + client.cameraEntity.getYaw() + ", pitch: " + client.cameraEntity.getPitch());
+					}
+					if (dreamcastedEntity != null) {
+						System.out.println("[DEBUG] Dreamcasted entity yaw: " + dreamcastedEntity.getYaw() + ", pitch: " + dreamcastedEntity.getPitch());
+					}
+					Camera camera = client.gameRenderer.getCamera();
+					System.out.println("[DEBUG] Camera object reference: " + camera);
+				}
+
+				// --- Sleep transition detection and handling ---
+				boolean isSleeping = false;
+				if (dreamcastedEntity != null) {
+					try {
+						isSleeping = (boolean) dreamcastedEntity.getClass().getMethod("isSleeping").invoke(dreamcastedEntity);
+					} catch (Exception ignored) {}
+				}
+				if (prevDreamcastedSleeping && !isSleeping) {
+					System.out.println("[DEBUG] Detected sleep -> wake transition for dreamcasted entity!");
+					// 1. Forcibly toggle perspective
+					if (client.options.getPerspective() != net.minecraft.client.option.Perspective.THIRD_PERSON_BACK) {
+						client.options.setPerspective(net.minecraft.client.option.Perspective.THIRD_PERSON_BACK);
+						System.out.println("[DEBUG] Toggled to third person perspective after sleep");
+					}
+					client.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON);
+					System.out.println("[DEBUG] Toggled back to first person perspective after sleep");
+					// 2. Re-create fake player camera entity after sleep
+					if (fakeCameraPlayerEntity != null && fakeCameraPlayerEntity.getWorld() != null) {
+						fakeCameraPlayerEntity.discard();
+					}
+					fakeCameraPlayerEntity = new FakeCameraPlayerEntity((ClientWorld)client.world, client.getNetworkHandler(), client.player);
+					fakeCameraPlayerEntity.setTargetEntity(dreamcastedEntity);
+					client.world.spawnEntity(fakeCameraPlayerEntity);
+					System.out.println("[FakeCamera] Re-created fake player camera entity after sleep. Camera: " + System.identityHashCode(fakeCameraPlayerEntity) + ", Spectated: " + System.identityHashCode(dreamcastedEntity));
+					client.setCameraEntity(fakeCameraPlayerEntity);
+				}
+				prevDreamcastedSleeping = isSleeping;
 			}
 			// Failsafe: forcibly return camera to player if needed
 			DreamcastingClient.clientTickFailsafe(client);

@@ -67,7 +67,7 @@ public class CustomBlocks {
     }
 
     public static void registerBlocks() {
-        Weirdcraft.LOGGER.info("Registering Mod Blocks for " + Weirdcraft.MOD_ID);
+        Weirdcraft.LOGGER.info("Registering mod blocks for " + Weirdcraft.MOD_ID);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(entries -> {
             entries.add(CustomBlocks.WEIRDIUM_BLOCK);

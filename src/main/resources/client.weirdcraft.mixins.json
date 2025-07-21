@@ -22,8 +22,6 @@
 		"HideCustomNameMixin",
 		"ViewModelMixin",
 		"CoinMixin",
-		"DreamcastingCameraRotationMixin",
-		"GameRendererCameraMixin",
 		"CameraAccessor"
 	],
 	"injectors": {

@@ -17,4 +17,10 @@ public interface CameraAccessor {
     
     @Accessor("pitch")
     float getPitch();
+    
+    @Accessor("focusedEntity")
+    void setFocusedEntity(net.minecraft.entity.Entity entity);
+    
+    @Accessor("focusedEntity")
+    net.minecraft.entity.Entity getFocusedEntity();
 } 

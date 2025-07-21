@@ -159,4 +159,8 @@ public class DreamcastingChunkManager {
         }
         return result;
     }
+
+    public static java.util.List<int[]> getAllChunkCoords() {
+        return new java.util.ArrayList<>();
+    }
 } 
